@@ -4,10 +4,9 @@ import pandas as pd
 import os
 
 class Commit_guru(base.FileDataset):
-    def __init__(self, filename):
 
+    def __init__(self, filename):
         df = pd.read_csv('datasets/' + filename)
-        df.drop(['commit_hash', 'author_date_unix_timestamp', 'fixes', 'fix_unix_timestamp'], axis=1, inplace=True)
         super().__init__(
             filename=filename,
             n_samples=df.shape[0],
@@ -18,7 +17,7 @@ class Commit_guru(base.FileDataset):
         return stream.iter_csv(
             self.path,
             target="contains_bug",
-            converters={'fix': lambda x: x == "TRUE",
+            converters={'fix': lambda x: x == "1",
                         'ns': float,
                         'nd': float,
                         'nf': float,
@@ -31,5 +30,6 @@ class Commit_guru(base.FileDataset):
                         'nuc': float,
                         'exp': float,
                         'rexp': float,
-                        'sexp': float, }
+                        'sexp': float,
+                        'contains_bug': lambda x: x == "1"}
         )
