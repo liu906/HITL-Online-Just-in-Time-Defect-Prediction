@@ -1,7 +1,10 @@
+import datetime
+
 from river import stream
 from . import base
 import pandas as pd
 import os
+
 
 class Commit_guru(base.FileDataset):
 
@@ -13,11 +16,14 @@ class Commit_guru(base.FileDataset):
             n_features=14,
             task=base.BINARY_CLF
         )
+
     def __iter__(self):
         return stream.iter_csv(
             self.path,
             target="contains_bug",
-            converters={'fix': lambda x: x == "1",
+
+            converters={'author_date_unix_timestamp': lambda x: datetime.datetime.utcfromtimestamp(int(x)),
+                        'fix': lambda x: x == "1",
                         'ns': float,
                         'nd': float,
                         'nf': float,
@@ -31,5 +37,7 @@ class Commit_guru(base.FileDataset):
                         'exp': float,
                         'rexp': float,
                         'sexp': float,
-                        'contains_bug': lambda x: x == "1"}
+                        'contains_bug': lambda x: x == "1"},
+          #  drop=['author_date_unix_timestamp']
+
         )
