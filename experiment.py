@@ -79,7 +79,7 @@ def imb_match(str_imb,model):
 if __name__ == '__main__':
     arg = argparse.ArgumentParser()
     '''
-    experiment -clf ExtremelyFastDecisionTreeClassifier -scaler StandardScaler -imb RandomOverSampler -delay 129600
+    experiment -clf ExtremelyFastDecisionTreeClassifier -scaler StandardScaler -imb RandomOverSampler -delay 129600 -f test.csv
     '''
     arg.add_argument('-clf', type=str, help='classifier in river, e.g. HoeffdingAdaptiveTreeClassifier', required=True)
     arg.add_argument('-scaler', type=str, default='',
@@ -88,28 +88,70 @@ if __name__ == '__main__':
                      help='imbalance algorithm in river, e.g. RandomOverSampler')
     arg.add_argument('-delay', type=int, default=0,
                      help='validation delay seconds. e.g. 129600 , means 90 days')
+    arg.add_argument('-f', type=str,
+                     help='filename used to build model. the file must be put under datasets/ e.g., test.csv')
 
     args = arg.parse_args()
     clf = clf_match(args.clf)
     scaler = scaler_match(args.scaler)
     str_imb = args.imb
+    delay = args.delay
+    f = args.f
+
 
     if scaler is None:
         model = imb_match(str_imb, model=clf)
     else:
         model = imb_match(str_imb, model=scaler | clf)
 
-    # metric = metrics.Recall()
-    dataset = Commit_guru(filename='129600_test.csv')
+    filename = clf + '_' + scaler + '_' + str_imb + '_' + str(delay) + '_' + f
 
-    evaluate.progressive_val_score(
-        model=model,
-        dataset=dataset,
-        metric=metrics.Recall(),
-        moment='author_date_unix_timestamp',
-        delay=datetime.timedelta(seconds=129600),
-        print_every=200
-    )
+
+    dataset = Commit_guru(filename=filename)
+    if delay == 0:
+        with open('log/' + filename+'.log', 'w') as f:
+            evaluate.progressive_val_score(
+                model=model,
+                dataset=dataset,
+                metric=metrics.ClassificationReport(),
+                print_every=400,
+                file=f
+            )
+    else:
+        with open('log/' + filename+'.log', 'w') as f:
+            evaluate.progressive_val_score(
+                model=model,
+                dataset=dataset,
+                metric=metrics.ClassificationReport(),
+                moment='author_date_unix_timestamp',
+                delay=datetime.timedelta(seconds=delay),
+                print_every=400,
+                file=f
+            )
+
+    # dataset = Commit_guru(filename='129600_test.csv')
+    #
+    # with open('129600_test.log', 'w') as f:
+    #     evaluate.progressive_val_score(
+    #         model=model,
+    #         dataset=dataset,
+    #         metric=metrics.ClassificationReport(),
+    #         moment='author_date_unix_timestamp',
+    #         delay=datetime.timedelta(seconds=129600),
+    #         print_every=400,
+    #         file=f
+    #     )
+
+    # dataset = Commit_guru(filename='0_test.csv')
+    #
+    # with open('0_test.log', 'w') as f:
+    #     evaluate.progressive_val_score(
+    #         model=model,
+    #         dataset=dataset,
+    #         metric=metrics.ClassificationReport(),
+    #         print_every=400,
+    #         file=f
+    #     )
     # print(evaluate.progressive_val_score(dataset, model, metric))
 
 
