@@ -73,8 +73,7 @@ analyzeTPFP <- function(file,write_file,scenario){
 
   }
 
-  write.csv(df.ideal.fold0,write_file)
-  
+  write.csv(df.ideal.fold0,write_file,row.names = FALSE)
 }
 file = '../moaGUIresult/comparisonResult.csv'
 write_file = '../moaGUIresult/comparisonResult_df.singleWindow(90).fold0.csv'
