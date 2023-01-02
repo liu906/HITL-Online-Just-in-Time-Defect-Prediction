@@ -1,5 +1,7 @@
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 getwd()
+
+
 library(tibble)
 
 combineOutput <- function(root,res_root,projects,evaluators,posfix,fold,evaluationSettings,flagDeleteInstancesNum){
