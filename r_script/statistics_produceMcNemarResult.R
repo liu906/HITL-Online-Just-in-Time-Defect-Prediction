@@ -9,7 +9,9 @@
 setwd(dir = '/media/lxt/TOSHIBA EXT/moa/r_script/')
 
 McNemar <- function(df1,df2){
-
+  # df1 <- value1
+  # df2 <- value2
+  
   list_m <- c()
   
   
@@ -60,10 +62,14 @@ McNemar <- function(df1,df2){
     }
     
     m = abs(n10-n01) * (n10-n01)^2/(n10+n01)
-   # cat(i,tp1,fp1,tn1,fn1,tp2,fp2,tn2,fn2,m,'\n')
+    if(is.na(m)){
+      cat(i,tp1,fp1,tn1,fn1,tp2,fp2,tn2,fn2,m,'\n')
+    }
+   
     list_m[length(list_m)+1] <- m
 
   }
+ 
   return(list_m)
 }
 
@@ -79,36 +85,33 @@ McNemar <- function(df1,df2){
 
 produceMcNemarResult <- function(folder1,folder2){
   
-  
+ 
   pat = paste(scenario,fold,eva,postfix,sep='_')
-  
-  files1 = list.files(path = folder1,pattern = pat)
-  files2 = list.files(path = folder2,pattern = pat)
+  files1 <- list.files(path = folder1)
+  files1 <- files1[endsWith(files1,paste(pat,'.csv',sep=''))]
+  files2 <- list.files(path = folder2)
+  files2 <- files2[endsWith(files2,paste(pat,'.csv',sep=''))]
   
   res_file = paste('mcnemar','_',folder1,'_',folder2,'_',pat,'.csv',sep = '')
   res_file_path = file.path('RQ3',res_file)
-  write(paste('dataset','fold','#instances','folder1','folder2','mcnemar',sep = ','), file=res_file_path, append=F)
-  # first_flag = TRUE
+  write(paste('scenario','dataset','fold','#instances','folder1','folder2','mcnemar',sep = ','), file=res_file_path, append=F)
   
+  
+
   for(file in files2){
     df1 = read.csv(file.path(folder1,file),check.names = FALSE)
     df2 = read.csv(file.path(folder2,file),check.names = FALSE)
-    
-    # if(nrow(df1) / nrow(df2)<0.99 || nrow(df1) / nrow(df2)>1.1){
-    #   cat(folder1,file.path(folder2,file),'\n')  
-    #   cat(nrow(df1) / nrow(df2),'\n')
-    # }
-    
+
     for(fold in folds){
-        
+       
         value1 = df1[as.numeric(df1$fold)==fold,]
         value2 = df2[as.numeric(df2$fold)==fold,]
         list_m <- McNemar(value1,value2)
         counter = 1
         
-        while(counter*interval <= nrow(value1) && counter*interval <= nrow(value2)){
+        while(counter*interval <= length(list_m)){
           sample_value = list_m[interval*counter]
-          write(paste(file,fold,interval*counter,folder1,folder2,sample_value,sep = ','), file=res_file_path, append=T)
+          write(paste(scenario,file,fold,interval*counter,folder1,folder2,sample_value,sep = ','), file=res_file_path, append=T)
           counter = counter+1
         }
       }
@@ -120,162 +123,189 @@ produceMcNemarResult <- function(folder1,folder2){
   
 }
 
-
+output_files <- function(){
+  folder1 = "RQ1-seed2"
+  folder2 = "RQ1-seed3"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed4"
+  folder2 = "RQ1-seed5"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed6"
+  folder2 = "RQ1-seed7"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed8"
+  folder2 = "RQ1-seed9"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed10"
+  folder2 = "RQ1-seed11"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed2"
+  folder2 = "RQ1-seed2-noise0.1"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed3"
+  folder2 = "RQ1-seed3-noise0.1"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed4"
+  folder2 = "RQ1-seed4-noise0.1"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed5"
+  folder2 = "RQ1-seed5-noise0.1"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed6"
+  folder2 = "RQ1-seed6-noise0.1"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed7"
+  folder2 = "RQ1-seed7-noise0.1"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed8"
+  folder2 = "RQ1-seed8-noise0.1"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed9"
+  folder2 = "RQ1-seed9-noise0.1"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed10"
+  folder2 = "RQ1-seed10-noise0.1"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed11"
+  folder2 = "RQ1-seed11-noise0.1"
+  produceMcNemarResult(folder1,folder2)
+  
+  
+  folder1 = "RQ1-seed2"
+  folder2 = "RQ1-seed2-noise0.05"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed3"
+  folder2 = "RQ1-seed3-noise0.05"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed4"
+  folder2 = "RQ1-seed4-noise0.05"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed5"
+  folder2 = "RQ1-seed5-noise0.05"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed6"
+  folder2 = "RQ1-seed6-noise0.05"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed7"
+  folder2 = "RQ1-seed7-noise0.05"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed8"
+  folder2 = "RQ1-seed8-noise0.05"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed9"
+  folder2 = "RQ1-seed9-noise0.05"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed10"
+  folder2 = "RQ1-seed10-noise0.05"
+  produceMcNemarResult(folder1,folder2)
+  
+  folder1 = "RQ1-seed11"
+  folder2 = "RQ1-seed11-noise0.05"
+  produceMcNemarResult(folder1,folder2)
+  
+}
+ 
 setwd('../experimentResult')
 getwd()
-scenario = 'DelayedCVIdeal'
+
+# scenarios = c('DelayedCVIdeal','DelayedCVExstension','DelayedCVPosNegWindow(7-90)')
+scenarios = c('DelayedCVExtension','DelayedCVPosNegWindow(7-90)')
 fold = '5Fold'
 eva = 'FF0.99'
 postfix = "detail"
 folds = 0:4
 interval = 1000
 
-folder1 = "RQ1-seed2"
-folder2 = "RQ1-seed3"
-produceMcNemarResult(folder1,folder2)
 
-folder1 = "RQ1-seed4"
-folder2 = "RQ1-seed5"
-produceMcNemarResult(folder1,folder2)
+for(scenario in scenarios){
+  output_files()
+}
 
-folder1 = "RQ1-seed6"
-folder2 = "RQ1-seed7"
-produceMcNemarResult(folder1,folder2)
-
-folder1 = "RQ1-seed8"
-folder2 = "RQ1-seed9"
-produceMcNemarResult(folder1,folder2)
-
-folder1 = "RQ1-seed10"
-folder2 = "RQ1-seed11"
-produceMcNemarResult(folder1,folder2)
-
-folder1 = "RQ1-seed2"
-folder2 = "RQ1-seed2-noise0.1"
-produceMcNemarResult(folder1,folder2)
-
-folder1 = "RQ1-seed3"
-folder2 = "RQ1-seed3-noise0.1"
-produceMcNemarResult(folder1,folder2)
-
-folder1 = "RQ1-seed4"
-folder2 = "RQ1-seed4-noise0.1"
-produceMcNemarResult(folder1,folder2)
-
-folder1 = "RQ1-seed5"
-folder2 = "RQ1-seed5-noise0.1"
-produceMcNemarResult(folder1,folder2)
-
-folder1 = "RQ1-seed6"
-folder2 = "RQ1-seed6-noise0.1"
-produceMcNemarResult(folder1,folder2)
-
-folder1 = "RQ1-seed7"
-folder2 = "RQ1-seed7-noise0.1"
-produceMcNemarResult(folder1,folder2)
-
-folder1 = "RQ1-seed8"
-folder2 = "RQ1-seed8-noise0.1"
-produceMcNemarResult(folder1,folder2)
-
-folder1 = "RQ1-seed9"
-folder2 = "RQ1-seed9-noise0.1"
-produceMcNemarResult(folder1,folder2)
-
-folder1 = "RQ1-seed10"
-folder2 = "RQ1-seed10-noise0.1"
-produceMcNemarResult(folder1,folder2)
-
-folder1 = "RQ1-seed11"
-folder2 = "RQ1-seed11-noise0.1"
-produceMcNemarResult(folder1,folder2)
-
-
-folder1 = "RQ1-seed2"
-folder2 = "RQ1-seed2-noise0.05"
-produceMcNemarResult(folder1,folder2)
-
-folder1 = "RQ1-seed3"
-folder2 = "RQ1-seed3-noise0.05"
-produceMcNemarResult(folder1,folder2)
-
-folder1 = "RQ1-seed4"
-folder2 = "RQ1-seed4-noise0.05"
-produceMcNemarResult(folder1,folder2)
-
-folder1 = "RQ1-seed5"
-folder2 = "RQ1-seed5-noise0.05"
-produceMcNemarResult(folder1,folder2)
-
-folder1 = "RQ1-seed6"
-folder2 = "RQ1-seed6-noise0.05"
-produceMcNemarResult(folder1,folder2)
-
-folder1 = "RQ1-seed7"
-folder2 = "RQ1-seed7-noise0.05"
-produceMcNemarResult(folder1,folder2)
-
-folder1 = "RQ1-seed8"
-folder2 = "RQ1-seed8-noise0.05"
-produceMcNemarResult(folder1,folder2)
-
-folder1 = "RQ1-seed9"
-folder2 = "RQ1-seed9-noise0.05"
-produceMcNemarResult(folder1,folder2)
-
-folder1 = "RQ1-seed10"
-folder2 = "RQ1-seed10-noise0.05"
-produceMcNemarResult(folder1,folder2)
-
-folder1 = "RQ1-seed11"
-folder2 = "RQ1-seed11-noise0.05"
-produceMcNemarResult(folder1,folder2)
 
 threshold <- 3.8414588
 
 summary_res_file <- 'RQ3/pvalue_summary.csv'
 if(!file.exists(summary_res_file)){
-  write(paste('comparison','indicator','statistic','ratio_rejectN0',sep=','),file=summary_res_file,append = F)
+  write(paste('scenario','comparison','indicator','statistic','ratio_rejectN0',sep=','),file=summary_res_file,append = F)
 }
 files <- list.files('RQ3')
 files <- files[startsWith(files,'mcnemar')]
 first_flag = T
 for(file in files){
-  sub_df <- read.csv(file.path('RQ3',file))
+  sub_df <- read.csv(file.path('RQ3',file),check.names = F)
   if(first_flag){
     df <- sub_df
     first_flag <- F
   }else{
+    colnames(df)
+    colnames(sub_df)
     df <- rbind(df,sub_df)
   }
 }
 
+# df <- df[!is.na(df$mcnemar),]
 
-sub_df <- df
 statistic <- 'mcnemar'
 indicator <- ''
 
-sub_df.noise0.1 <- sub_df[endsWith(sub_df$folder2,'noise0.1'),]
-item_df <- sub_df.noise0.1[,'mcnemar'] 
-ratio_rejectN0 <- sum(item_df > threshold) / length(item_df)
-one <- paste('normal vs. noise0.1',indicator,statistic,ratio_rejectN0,sep = ',')
-write(one, file=summary_res_file, append=T)
+for(scenario in unique(df$scenario)){
+  sub_df <- df[df$scenario == scenario,]
+  sub_df.noise0.1 <- sub_df[endsWith(sub_df$folder2,'noise0.1'),]
+  item_df <- sub_df.noise0.1[,'mcnemar'] 
+  ratio_rejectN0 <- sum(item_df > threshold) / length(item_df)
+  one <- paste(scenario,'normal vs. noise0.1',indicator,statistic,ratio_rejectN0,sep = ',')
+  write(one, file=summary_res_file, append=T)
+  
+  sub_df.noise0.05 <- sub_df[endsWith(sub_df$folder2,'noise0.05'),]
+  
+  item_df <- sub_df.noise0.05[,'mcnemar'] 
+  ratio_rejectN0 <- sum(item_df > threshold) / length(item_df)
+  one <- paste(scenario,'normal vs. noise0.05',indicator,statistic,ratio_rejectN0,sep = ',')
+  write(one, file=summary_res_file, append=T)
+  
+  
+  
+  sub_df.normal <- sub_df[!endsWith(sub_df$folder2,'noise0.05') & !endsWith(sub_df$folder2,'noise0.1'),]
+  
+  item_df <- sub_df.normal[,'mcnemar'] 
+  ratio_rejectN0 <- sum(item_df > threshold) / length(item_df)
+  one <- paste(scenario,'normal vs. normal',indicator,statistic,ratio_rejectN0,sep = ',')
+  write(one, file=summary_res_file, append=T)
+  
+}
 
-sub_df.noise0.05 <- sub_df[endsWith(sub_df$folder2,'noise0.05'),]
 
-item_df <- sub_df.noise0.05[,'mcnemar'] 
-ratio_rejectN0 <- sum(item_df > threshold) / length(item_df)
-one <- paste('normal vs. noise0.05',indicator,statistic,ratio_rejectN0,sep = ',')
-write(one, file=summary_res_file, append=T)
-
-
-
-sub_df.normal <- sub_df[!endsWith(sub_df$folder2,'noise0.05') & !endsWith(sub_df$folder2,'noise0.1'),]
-
-item_df <- sub_df.normal[,'mcnemar'] 
-ratio_rejectN0 <- sum(item_df > threshold) / length(item_df)
-one <- paste('normal vs. normal',indicator,statistic,ratio_rejectN0,sep = ',')
-write(one, file=summary_res_file, append=T)
-
+# library(tibble)
+# files <- list.files('RQ3')
+# files <- files[startsWith(files,'mcnemar')]
+# files <- files[endsWith(files,'DelayedCVIdeal_5Fold_FF0.99_detail.csv')]
+# for(file in files){
+#   colnames(df)
+#   df <- read.csv(file = file.path('RQ3',file),check.names = F)
+#   df <- add_column(df, 'scenario' = 'DelayedCVIdeal', .before = 1)
+#   write.csv(df,file = file.path('RQ3',file),row.names = F)
+# }
 
 
