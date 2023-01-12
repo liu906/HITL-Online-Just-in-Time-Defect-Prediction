@@ -3,9 +3,7 @@ setwd('/media/lxt/TOSHIBA EXT/moa/commit_guru_dataset/')
 files <- list.files(pattern = 'csv')
 
 info <- c('project','total changes','%defect-inducing changes','time period start','time period end','defects/day')
-res_df <- data.frame()
 
-colnames(res_df) <- info
 
 first_flag = T
 for(file in files){
@@ -32,7 +30,33 @@ for(file in files){
 
 res_df[nrow(res_df)+1,] <- list("average",mean(res_df$`total changes`),mean(res_df$`%defect-inducing changes`),"","",mean(res_df$`defects/day`))
 
-write.csv(res_df,'../r_script/result/datasetInformation.csv')
+write.csv(res_df,'../r_script/result/datasetInformation.csv',row.names = F)
 
+library('tibble')
 
+first_flag = T
+for(file in files){
+  project <- substr(file,3,nchar(file)-4)
+  df <- read.csv(file)
+  indicators <- c('la','ld','lt')
+  for(indicator in indicators){
+    la <- summary(df[,indicator])
+    if(first_flag){
+      first_flag=F
+      
+      effort_df <- as.data.frame(as.array(la))
+      colnames(effort_df) <- c('Var','Freq')
+      effort_df <- add_column(effort_df,project=rep(project,6),indicator=rep(indicator,6),.before = 1)
+    }else{
+      temp <- as.data.frame(as.array(la))
+      colnames(temp) <- c('Var','Freq')
+      temp <- add_column(temp,project=rep(project,6),indicator=rep(indicator,6),.before = 1)
+      effort_df <- rbind(effort_df,temp)
+    }
+  }
+  
+  
+}
+
+write.csv(effort_df,'../r_script/result/datasetEffort.csv',row.names = F)
 
