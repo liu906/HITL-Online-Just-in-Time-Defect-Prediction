@@ -37,21 +37,21 @@ combineOutput <- function(root,res_root,projects,evaluators,posfix,fold,evaluati
   
 }
 
-
+setwd('H:/moa/r_script/')
 
 root = "../experimentResult/RQ1/"
 res_root = "../experimentResult/RQ1/combinationOfDifferentEvaluationSetting/"
 projects <- c(
               'FFmpeg',
-              # 'brackets',
-              # 'camel',
-              # 'edx-platform',
-              # 'elasticsearch',
+              'brackets',
+              'camel',
+              'edx-platform',
+              'elasticsearch',
               'git',
               'kubernetes',
-              # 'mindspore',
-              # 'tensorflow',
-              # 'vlc'
+              'mindspore',
+              'tensorflow',
+              'vlc'
               )
 evaluators <- c("BasicClfPerEva")
 posfix <- "detail.csv"

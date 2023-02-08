@@ -14,14 +14,6 @@ analyzeTPFP <- function(file,write_file,scenario){
   
   
   
-  # cTP = c(0)
-  # cFN = c(0)
-  # cTP2 = c(0)
-  # cFP = c(0)
-  # cFN = c(0)
-  
-  # current_recall1 = 0
-  # current_precision1 = 0
   df.ideal.fold0$tp = 0
   df.ideal.fold0$fp = 0
   df.ideal.fold0$tn = 0
@@ -95,3 +87,10 @@ file = '../moaGUIresult/comparisonResult.csv'
 write_file = '../moaGUIresult/comparisonResult_df.total.csv'
 scenario = ""
 analyzeTPFP(file,write_file,scenario)
+
+###################################for compute Mcnemar
+files <- list.files('../experimentResult/RQ1-seed2/',pattern='detail',full.names = TRUE)
+for(file in files){
+  analyzeTPFP(file,file,scenario = "")
+}
+

@@ -1,8 +1,5 @@
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 getwd()
-setwd('../experimentResult/')
-
-
 
 producePairedResult <- function(folder1,folder2){
   pat = paste(scenario,fold,eva,postfix,sep='_')
@@ -15,44 +12,53 @@ producePairedResult <- function(folder1,folder2){
     df1 = read.csv(file.path(folder1,file),check.names = FALSE)
     df2 = read.csv(file.path(folder2,file),check.names = FALSE)
     
-    for(indicator in indicators){
-      for(fold in folds){
-        value1 = as.numeric(df1[df1$fold==fold,indicator])
-        value2 = as.numeric(df2[df2$fold==fold,indicator])
-        counter = 1
-        while(counter*interval <= length(value1) && counter*interval <= length(value2)){
-          v1 = value1[interval*counter]
-          v2 = value2[interval*counter]
-          counter = counter+1
-          if(first_flag){
-            first_flag = FALSE
-            total_res = data.frame(matrix(nrow = 0,ncol = 6))
-            colnames(total_res)=c('dataset','fold','#instances','indicator',folder1,folder2)
-          }
-          total_res[nrow(total_res)+1,] = c(file,fold,interval*counter,indicator,v1,v2)
-        }
-      }
+    if(nrow(df1) / nrow(df2)<0.99 || nrow(df1) / nrow(df2)>1.1){
+      cat(folder1,file.path(folder2,file),'\n')  
+      cat(nrow(df1) / nrow(df2),'\n')
     }
     
+  #   for(indicator in indicators){
+  #     for(fold in folds){
+  #       
+  #       value1 = as.numeric(df1[as.numeric(df1$fold)==fold,indicator])
+  #       value2 = as.numeric(df2[as.numeric(df2$fold)==fold,indicator])
+  #       counter = 1
+  #       while(counter*interval <= length(value1) && counter*interval <= length(value2)){
+  #         v1 = value1[interval*counter]
+  #         v2 = value2[interval*counter]
+  #         counter = counter+1
+  #         if(first_flag){
+  #           first_flag = FALSE
+  #           total_res = data.frame(matrix(nrow = 0,ncol = 6))
+  #           colnames(total_res)=c('dataset','fold','#instances','indicator',folder1,folder2)
+  #         }
+  #         total_res[nrow(total_res)+1,] = c(file,fold,interval*counter,indicator,v1,v2)
+  #       }
+  #     }
+  #   }
+  #   
   }
-  
-  
-  res_file = paste(folder1,'_',folder2,'_',pat,'.csv',sep = '')
-  write.csv(total_res,file = file.path('RQ3',res_file))
-  
+  # 
+  # 
+  # res_file = paste(folder1,'_',folder2,'_',pat,'.csv',sep = '')
+  # write.csv(total_res,file = file.path('RQ3',res_file))
+  # 
 }
 
 
-
+setwd('H:/moa/experimentResult')
 scenario = 'DelayedCVIdeal'
+scenario = 'DelayedCVExtension'
+
 fold = '5Fold'
-eva = 'BasicClfPerEva'
+eva = 'FF0.99'
 postfix = "detail"
 folds = 0:4
 interval = 1000
 indicators = c('Recall for class 1 (percent)',
-               'Precision for class 1 (percent)',
-               'F1 Score for class 1 (percent)')
+               'Kappa Recall Temporal Statistic 1 (percent)',
+               'Gmean for recall  (percent)',
+               'Kappa Gmean Temporal Statistic  (percent)')
 
 folder1 = "RQ1-seed2"
 folder2 = "RQ1-seed3"
