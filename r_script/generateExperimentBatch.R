@@ -43,14 +43,16 @@ projects <- c('brackets',
               'mindspore',
               'tensorflow',
               'vlc')
-for(i in 1:length(files)){
+for(i in 1:length(projects)){
   
   project <- files[i]
   name <- projects[i]
   for(learner in learners){
-    
-    dump_path <- paste('./r_script/result/differentLearner/',learner,'_',name,'_DelayedCVIdeal_5Fold_FF0.99_dumpFile.csv',sep='')
-    detail_path <- paste('./r_script/result/differentLearner/',learner,'_',name,'_DelayedCVIdeal_5Fold_FF0.99_detail.csv',sep='')
+    learner <- '"(meta.OzaBag" -l "trees.HoeffdingTree)"'
+    temp <- gsub('"', '', learner)
+    temp <- gsub(' ','_',temp)
+    dump_path <- paste('./r_script/result/differentLearner/',name,'_',temp,'_DelayedCVIdeal_5Fold_FF0.99_dumpFile.csv',sep='')
+    detail_path <- paste('./r_script/result/differentLearner/',name,'_',temp,'_DelayedCVIdeal_5Fold_FF0.99_detail.csv',sep='')
     # command <- paste('java -classpath "classes" moa.DoTask EvaluatePrequentialDelayedCVIdeal -l ',
     #                  learner ,' -s "(ArffFileStream" -f "', project ,')" -e 
     #                "(FadingFactorClassificationPerformanceEvaluator" 
