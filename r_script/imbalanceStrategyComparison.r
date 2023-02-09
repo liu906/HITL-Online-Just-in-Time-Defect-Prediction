@@ -1,7 +1,7 @@
 setwd('/media/lxt/TOSHIBA EXT/moa/')
 list.dirs('experimentResult/', recursive = F)
 settings <- c(
-  'CSMOTE',
+  # 'CSMOTE', CSMOTE changes #instance of result, so it is droped
   'HoeffdingAdaptiveTree',
   'OnlineAdaBoost',
   'OnlineAdaC2',
@@ -58,7 +58,17 @@ for (file in files) {
   write.csv(
     total_res,
     file.path('r_script/result/imbalanceStrategyComparison/', file),
-    row.names = F
+    row.names = F,
+    quote = F
   )
   
 }
+
+files <- list.files('r_script/result/imbalanceStrategyComparison/',full.names = T)
+
+for(file in files){
+  df <- read.csv(file,check.names = F)
+  write.csv(df,file,row.names = F,quote = F)
+}
+
+
