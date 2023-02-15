@@ -1,5 +1,7 @@
 #compute total la for clean commits and total la for buggy commits every month
 setwd('/media/lxt/TOSHIBA EXT/moa/')
+source('r_script/FadingFactor.r')
+
 data_path <- './commit_guru_dataset/cut2years/'
 files <- list.files(data_path,pattern = 'csv')
 file <- files[1]
@@ -47,4 +49,20 @@ for(file in files){
     
   }
   write.csv(total_res,file.path('./r_script/result/datasetPattern/',paste('summaryBy1Month-',file,sep='')),quote = F,row.names = F)
+}
+
+
+#time decayed feature values
+for(file in files){
+  df <- read.csv(file.path(data_path,file))
+  timeDecayed_la <- ff2(arr=df$la,fadingFactor = 0.99)
+  timeDecayed_ld <- ff2(arr=df$ld,fadingFactor = 0.99)
+  timeDecayed_lt <- ff2(arr=df$lt,fadingFactor = 0.99)
+  a <- c(1:length(timeDecayed_la))
+  
+  # Make a basic graph
+  plot( timeDecayed_la~a , type="b" , bty="l" , xlab="instance" , ylab="performance" , col=rgb(0.2,0.4,0.1,0.7) , lwd=1 , pch=17)
+  lines(timeDecayed_ld~a , col=rgb(0.8,0.4,0.1,0.7) , lwd=3 , pch=19 , type="b" )
+  lines(timeDecayed_lt~a , col=rgb(0.4,0.8,0.5,0.7) , lwd=3 , pch=19 , type="b" )
+  
 }
