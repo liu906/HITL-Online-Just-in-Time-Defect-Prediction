@@ -58,7 +58,7 @@ commit_guru_raw_data_preprocess <- function(file_name,delay_time_interval,root,t
   # df$fix_unix_timestamp=NULL
   df = df[order(df$author_date_unix_timestamp),]  
   
-  write.csv(df,file.path(target_path,paste(delay_time_interval,file_name,sep='_')),row.names = FALSE)
+  write.csv(df,file.path(target_path,paste(delay_time_interval,file_name,sep='_')),row.names = FALSE,quote = F)
 
 }
 
@@ -76,10 +76,11 @@ commit_guru_raw_data_preprocess(file_name = 'mindspore(master).csv',delay_time_i
 commit_guru_raw_data_preprocess(file_name = 'tensorflow(master).csv',delay_time_interval = 0,root='../commit_guru/',target_path='../commit_guru_dataset/')
 commit_guru_raw_data_preprocess(file_name = 'vlc(master).csv',delay_time_interval = 0,root='../commit_guru/',target_path='../commit_guru_dataset/')
 
-# commit_guru_raw_data_preprocess(file_name = 'test.csv',delay_time_interval = 60*24*90)
-# commit_guru_raw_data_preprocess(file_name = 'test.csv',delay_time_interval = 3600*24*90)
-# commit_guru_raw_data_preprocess(file_name = 'test.csv',delay_time_interval = 3600*24*30)
-# commit_guru_raw_data_preprocess(file_name = 'test.csv',delay_time_interval = 3600*24*60)
+commit_guru_raw_data_preprocess(file_name = 'cppcheck(main).csv',delay_time_interval = 0,root='../commit_guru/',target_path='../commit_guru_dataset/')
+commit_guru_raw_data_preprocess(file_name = 'gerrit(stable-2.12).csv',delay_time_interval = 0,root='../commit_guru/',target_path='../commit_guru_dataset/')
+commit_guru_raw_data_preprocess(file_name = 'gimp(master).csv',delay_time_interval = 0,root='../commit_guru/',target_path='../commit_guru_dataset/')
+commit_guru_raw_data_preprocess(file_name = 'pip(main).csv',delay_time_interval = 0,root='../commit_guru/',target_path='../commit_guru_dataset/')
+
 
 sum(df$contains_bug)
 

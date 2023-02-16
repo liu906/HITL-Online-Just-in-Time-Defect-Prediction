@@ -1,5 +1,5 @@
 
-setwd('/media/lxt/TOSHIBA EXT/moa/commit_guru_dataset/')
+setwd('/media/lxt/TOSHIBA EXT/moa/commit_guru_dataset/cut2years/')
 files <- list.files(pattern = 'csv')
 
 info <- c('project','total changes','%defect-inducing changes','time period start','time period end','defects/day')
@@ -30,7 +30,7 @@ for(file in files){
 
 res_df[nrow(res_df)+1,] <- list("average",mean(res_df$`total changes`),mean(res_df$`%defect-inducing changes`),"","",mean(res_df$`defects/day`))
 
-write.csv(res_df,'../r_script/result/datasetInformation.csv',row.names = F)
+write.csv(res_df,'/media/lxt/TOSHIBA EXT/moa/r_script/result/datasetInformation.csv',row.names = F)
 
 library('tibble')
 
@@ -58,5 +58,5 @@ for(file in files){
   
 }
 
-write.csv(effort_df,'../r_script/result/datasetEffort.csv',row.names = F)
+write.csv(effort_df,'/media/lxt/TOSHIBA EXT/moa/r_script/result/datasetEffort.csv',row.names = F)
 
