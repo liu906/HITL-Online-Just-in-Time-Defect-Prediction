@@ -1,8 +1,8 @@
 
-combineCommand <- function(learner,seed,f_sampleFrequency,q_timeFrequency,project,P,N){
+combineCommand <- function(learner,seed,f_sampleFrequency,q_timeFrequency,project,P,N,dump_path,detail_path,seed,evaluation_method){
   command <-
     paste(
-      'java -classpath "classes" moa.DoTask EvaluatePrequentialDelayedCVPosNegWindow -l ',
+      'java -classpath "classes" moa.DoTask ',evaluation_method ,' -l ',
       learner ,
       ' -s "(ArffFileStream" -f "',
       project ,
@@ -16,14 +16,14 @@ combineCommand <- function(learner,seed,f_sampleFrequency,q_timeFrequency,projec
       '"',
       detail_path ,
       '"',
-      ' -a Bootstrap-Validation  -D 0 -w 5 -A 1 -r 2 -P ', P,' -N ',N,
+      ' -a Bootstrap-Validation  -D 0 -w 5 -A 1 -r ',seed,' -P ', P,' -N ',N,
       sep = ''
     )
   return(command)
 }
 
 
-seed = 2
+
 setwd('/media/lxt/TOSHIBA EXT/moa/')
 learners = c(
   'trees.HoeffdingTree',
@@ -52,80 +52,58 @@ learners = c(
   '(meta.imbalanced.OnlineUnderOverBagging -l (meta.AdaptiveRandomForest -x (ADWINChangeDetector -a 0.001) -p (ADWINChangeDetector -a 0.01)))'
 )
 
-f_sampleFrequency = '1'
-q_timeFrequency = '1'
+
 
 
 files <-
   list.files('./commit_guru_dataset',
              pattern = 'arff',
              full.names = T)
-# projects <- c('brackets',
-#               'camel',
-#               'edx-platform',
-#               'elasticsearch',
-#               'FFmpeg',
-#               'git',
-#               'kubernetes',
-#               'mindspore',
-#               'tensorflow',
-#               'vlc')
+
+seed = '2'
+f_sampleFrequency = '1'
+q_timeFrequency = '1'
+seconds_in_a_day <- 24*60*60
 
 
+evaluation_method <- 'EvaluatePrequentialDelayedCVPosNegWindow'
 
 for (i in 1:length(projects)) {
   project <- files[i]
   name <- substr(basename(project), 1, nchar(basename(project)) - 5)
-  
   for (learner in learners) {
     learner <- '"(meta.OzaBag" -l "trees.HoeffdingTree)"'
     temp <- gsub('"', '', learner)
     temp <- gsub(' ', '_', temp)
-    dump_path <-
-      paste(
-        './r_script/result/differentLearner/',
-        name,
-        '_',
-        temp,
-        '_DelayedCVIdeal_5Fold_FF0.99_dumpFile.csv',
-        sep = ''
-      )
-    detail_path <-
-      paste(
-        './r_script/result/differentLearner/',
-        name,
-        '_',
-        temp,
-        '_DelayedCVIdeal_5Fold_FF0.99_detail.csv',
-        sep = ''
-      )
-
-    command <-
-      paste(
-        'java -classpath "classes" moa.DoTask EvaluatePrequentialDelayedCVIdeal -l ',
-        learner ,
-        ' -s "(ArffFileStream" -f "',
-        project ,
-        ')" -e "(FadingFactorClassificationPerformanceEvaluator" -a 0.99 -o -p -r "-f)" -k 99 -f ',
-        f_sampleFrequency ,
-        ' -q ',
-        q_timeFrequency ,
-        ' -d "',
-        dump_path ,
-        '" -o ',
-        '"',
-        detail_path ,
-        '"',
-        ' -a Bootstrap-Validation  -D 0 -w 5 -A 1 -r 2 ',
-        sep = ''
-      )
+    PosWinowLengths <- c(1,3,7,15,30,60)
+    NegWinowLengths <- c(15,90)
     
-    
-    seconds_in_a_day <- 24*60*60
-    P <- seconds_in_a_day * 1
-    N <- seconds_in_a_day * 90
-    command <- combineCommand(learner,seed,f_sampleFrequency,q_timeFrequency,project,P,N)
-
+    for(P_day in PosWinowLengths){
+      P = P_day * seconds_in_a_day
+      for(N_day in NegWinowLengths){
+        N = N_day * seconds_in_a_day
+        dump_path <-
+          paste(
+            './r_script/result/differentLearner/',
+            name,
+            '_',
+            temp,
+            '_',evaluation_method,'_',P_day,'_',N_day,'_5Fold_FF0.99_dumpFile.csv',
+            sep = ''
+          )
+        detail_path <-
+          paste(
+            './r_script/result/differentLearner/',
+            name,
+            '_',
+            temp,
+            '_',evaluation_method,'_',P_day,'_',N_day,'_5Fold_FF0.99_detail.csv',
+            sep = ''
+          )
+        
+        command <- combineCommand(learner,seed,f_sampleFrequency,q_timeFrequency,project,P,N,dump_path,detail_path,seed,evaluation_method)
+      }
+    }
     system(command, wait = F)
     
   }
