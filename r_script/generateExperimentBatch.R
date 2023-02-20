@@ -2,8 +2,8 @@
 seconds_in_a_day <- 24*60*60
 setwd('/media/lxt/TOSHIBA EXT/moa/')
 
-combineCommand <- function(learner,seed,f_sampleFrequency,q_timeFrequency,project,P,N,evaluation_method,res_root){
-
+combineCommand <- function(learner,seed,f_sampleFrequency,q_timeFrequency,project,P,N,evaluation_method,res_root,validation='Bootstrap-Validation'){
+  
   name <- substr(basename(project), 1, nchar(basename(project)) - 5)
   temp <- gsub('"', '', learner)
   temp <- gsub(' ', '_', temp)
@@ -70,7 +70,7 @@ combineCommand <- function(learner,seed,f_sampleFrequency,q_timeFrequency,projec
         '"',
         detail_path ,
         '"',
-        ' -a Bootstrap-Validation  -D 0 -w 5 -A 1 -r ',seed,
+        ' -a ', validation ,'  -D 0 -w 5 -A 1 -r ',seed,
         sep = ''
       )
   }else{
@@ -90,7 +90,7 @@ combineCommand <- function(learner,seed,f_sampleFrequency,q_timeFrequency,projec
         '"',
         detail_path ,
         '"',
-        ' -a Bootstrap-Validation  -D 0 -w 5 -A 1 -r ',seed,' -P ', P,' -N ',N,
+        ' -a ', validation ,'  -D 0 -w 5 -A 1 -r ',seed,' -P ', P,' -N ',N,
         sep = ''
       )
   }
