@@ -42,37 +42,43 @@ learners = c(
   'trees.HoeffdingAdaptiveTreeClassifLeaves',
   'trees.HoeffdingTreeClassifLeaves'
 )
-res_root <- './r_script/result/cutByCommitIndex/Cross-Validation/'
+# res_root <- './r_script/result/cutByCommitIndex/Cross-Validation/'
+# validation = 'Cross-Validation'
+
+res_root <- './r_script/result/cutByCommitIndex/Bootstrap-Validation/'
+validation = 'Bootstrap-Validation'
+
 dir.create(res_root,recursive = T, showWarnings = F)
-validation = 'Cross-Validation'
+
+
 for (i in 1:length(files)) {
   project <- files[i]
   for (learner in learners) {
     
-    # PosWinowLengths <- c(7)
-    # NegWinowLengths <- c(15,90)
-    # evaluation_method <- 'EvaluatePrequentialDelayedCVPosNegWindow'
-    # for(P_day in PosWinowLengths){
-    #   P <- P_day * seconds_in_a_day
-    #   for(N_day in NegWinowLengths){
-    #     N <- N_day * seconds_in_a_day
-    #     command <- combineCommand(learner,seed,f_sampleFrequency,q_timeFrequency,project,P,N,evaluation_method,res_root)
-    #     sink(script_file,append = T)
-    #     cat(command)
-    #     cat("\n")
-    #     sink()
-    #     
-    #   }
-    # }
-    # 
-    
+    PosWinowLengths <- c(7)
+    NegWinowLengths <- c(90)
+    evaluation_method <- 'EvaluatePrequentialDelayedCVPosNegWindow'
+    for(P_day in PosWinowLengths){
+      P <- P_day * seconds_in_a_day
+      for(N_day in NegWinowLengths){
+        N <- N_day * seconds_in_a_day
+        command <- combineCommand(learner,seed,f_sampleFrequency,q_timeFrequency,project,P,N,evaluation_method,res_root)
+        sink(script_file,append = T)
+        cat(command)
+        cat("\n")
+        sink()
+
+      }
+    }
+
+
     #Ideal
-    evaluation_method <- 'EvaluatePrequentialDelayedCVIdeal'
-    command <- combineCommand(learner,seed,f_sampleFrequency,q_timeFrequency,project,-1,-1,evaluation_method,res_root,validation)
-    sink(script_file,append = T)
-    cat(command)
-    cat("\n")
-    sink()
+    # evaluation_method <- 'EvaluatePrequentialDelayedCVIdeal'
+    # command <- combineCommand(learner,seed,f_sampleFrequency,q_timeFrequency,project,-1,-1,evaluation_method,res_root,validation)
+    # sink(script_file,append = T)
+    # cat(command)
+    # cat("\n")
+    # sink()
     # system(command, wait = F)
   }
 }
