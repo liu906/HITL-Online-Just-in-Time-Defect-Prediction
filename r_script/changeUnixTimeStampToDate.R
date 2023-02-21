@@ -1,6 +1,6 @@
 
 setwd('/media/lxt/TOSHIBA EXT/moa/')
-file_path <- 'r_script/result/cutByCommitIndex/Bootstrap-Validation/trees.HoeffdingTreeClassifLeaves/seed2/'
+file_path <- 'r_script/result/cutByCommitIndex/Cross-Validation/trees.HoeffdingAdaptiveTreeClassifLeaves//seed2/'
 files <- list.files(file_path,pattern='detail')
 for(file in files){
   
