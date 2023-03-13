@@ -1,7 +1,3 @@
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-getwd()
-
-
 library(tibble)
 
 combineOutput <- function(root,res_root,projects,evaluators,posfix,fold,evaluationSettings,flagDeleteInstancesNum){
@@ -39,8 +35,9 @@ combineOutput <- function(root,res_root,projects,evaluators,posfix,fold,evaluati
 
 setwd('H:/moa/r_script/')
 
-root = "../experimentResult/RQ1/"
-res_root = "../experimentResult/RQ1/combinationOfDifferentEvaluationSetting/"
+
+root = "../experimentResult/RQ1-seed2/"
+res_root = "result/combinationOfDifferentEvaluationSetting"
 projects <- c(
               'FFmpeg',
               'brackets',
@@ -53,8 +50,7 @@ projects <- c(
               'tensorflow',
               'vlc'
               )
-evaluators <- c("BasicClfPerEva")
-posfix <- "detail.csv"
+evaluators <- c("FF0.99")
 fold <- "5Fold"
 evaluationSettings <- c("DelayedCVPosNegWindow(1-90)",
                         "DelayedCVPosNegWindow(3-90)",
@@ -64,6 +60,8 @@ evaluationSettings <- c("DelayedCVPosNegWindow(1-90)",
                         "DelayedCVPosNegWindow(60-90)",
                         "DelayedCVIdeal",
                         "DelayedCVExtension")
+
+posfix <- "detail.csv"
 flagDeleteInstancesNum = TRUE
 combineOutput(root,res_root,projects,evaluators,posfix,fold,evaluationSettings,flagDeleteInstancesNum)
 
