@@ -70,7 +70,7 @@ Type2_error <- function(maxPair=50){
   folders01 <- c("seed1-noise0.1","seed2-noise0.1","seed3-noise0.1","seed4-noise0.1","seed5-noise0.1","seed6-noise0.1","seed7-noise0.1","seed8-noise0.1","seed9-noise0.1","seed10-noise0.1","seed11-noise0.1")
     
   counter <- 1
-  
+  i <- 11
   for(i in 1:length(folders0)){
     
       if(counter > maxPair){

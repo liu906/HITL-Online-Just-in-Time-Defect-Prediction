@@ -6,7 +6,9 @@
 # getwd()
 
 
-setwd(dir = '/media/lxt/TOSHIBA EXT/moa/r_script/')
+# setwd(dir = '/media/lxt/TOSHIBA EXT/moa/r_script/')
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+getwd()
 
 McNemar <- function(df1,df2){
   # df1 <- value1
@@ -73,15 +75,6 @@ McNemar <- function(df1,df2){
   return(list_m)
 }
 
-# df <- read.csv('../experimentResult/temp/vlc_DelayedCVIdeal_5Fold_BasicClfPerEva_detail.csv')
-# 
-# df1 <- df[df$fold==0,]
-# df2 <- df[df$fold==1,]
-# 
-# list_m <- McNemar(df1,df2)
-# list_m
-
-
 
 produceMcNemarResult <- function(folder1,folder2){
   
@@ -128,102 +121,22 @@ output_files <- function(){
   folder2 = "RQ1-seed3"
   produceMcNemarResult(folder1,folder2)
   
-  folder1 = "RQ1-seed4"
-  folder2 = "RQ1-seed5"
-  produceMcNemarResult(folder1,folder2)
+  folders <- c("seed1-noise0","seed2-noise0","seed3-noise0","seed4-noise0","seed5-noise0","seed6-noise0","seed7-noise0","seed8-noise0","seed9-noise0","seed10-noise0","seed11-noise0")
+  counter <- 1
   
-  folder1 = "RQ1-seed6"
-  folder2 = "RQ1-seed7"
-  produceMcNemarResult(folder1,folder2)
+  for(i in 1:length(folders)){
+    for(j in (i+1):length(folders)){
+      if(counter > maxPair){
+        break
+      }
+      folder1 <- folders[i]
+      folder2 <- folders[j]
+      cat(folder1,folder2,'\n')
+      producePairedResult(folder1,folder2)
+      counter <- counter + 1
+    }
+  }
   
-  folder1 = "RQ1-seed8"
-  folder2 = "RQ1-seed9"
-  produceMcNemarResult(folder1,folder2)
-  
-  folder1 = "RQ1-seed10"
-  folder2 = "RQ1-seed11"
-  produceMcNemarResult(folder1,folder2)
-  
-  folder1 = "RQ1-seed2"
-  folder2 = "RQ1-seed2-noise0.1"
-  produceMcNemarResult(folder1,folder2)
-  
-  folder1 = "RQ1-seed3"
-  folder2 = "RQ1-seed3-noise0.1"
-  produceMcNemarResult(folder1,folder2)
-  
-  folder1 = "RQ1-seed4"
-  folder2 = "RQ1-seed4-noise0.1"
-  produceMcNemarResult(folder1,folder2)
-  
-  folder1 = "RQ1-seed5"
-  folder2 = "RQ1-seed5-noise0.1"
-  produceMcNemarResult(folder1,folder2)
-  
-  folder1 = "RQ1-seed6"
-  folder2 = "RQ1-seed6-noise0.1"
-  produceMcNemarResult(folder1,folder2)
-  
-  folder1 = "RQ1-seed7"
-  folder2 = "RQ1-seed7-noise0.1"
-  produceMcNemarResult(folder1,folder2)
-  
-  folder1 = "RQ1-seed8"
-  folder2 = "RQ1-seed8-noise0.1"
-  produceMcNemarResult(folder1,folder2)
-  
-  folder1 = "RQ1-seed9"
-  folder2 = "RQ1-seed9-noise0.1"
-  produceMcNemarResult(folder1,folder2)
-  
-  folder1 = "RQ1-seed10"
-  folder2 = "RQ1-seed10-noise0.1"
-  produceMcNemarResult(folder1,folder2)
-  
-  folder1 = "RQ1-seed11"
-  folder2 = "RQ1-seed11-noise0.1"
-  produceMcNemarResult(folder1,folder2)
-  
-  
-  folder1 = "RQ1-seed2"
-  folder2 = "RQ1-seed2-noise0.05"
-  produceMcNemarResult(folder1,folder2)
-  
-  folder1 = "RQ1-seed3"
-  folder2 = "RQ1-seed3-noise0.05"
-  produceMcNemarResult(folder1,folder2)
-  
-  folder1 = "RQ1-seed4"
-  folder2 = "RQ1-seed4-noise0.05"
-  produceMcNemarResult(folder1,folder2)
-  
-  folder1 = "RQ1-seed5"
-  folder2 = "RQ1-seed5-noise0.05"
-  produceMcNemarResult(folder1,folder2)
-  
-  folder1 = "RQ1-seed6"
-  folder2 = "RQ1-seed6-noise0.05"
-  produceMcNemarResult(folder1,folder2)
-  
-  folder1 = "RQ1-seed7"
-  folder2 = "RQ1-seed7-noise0.05"
-  produceMcNemarResult(folder1,folder2)
-  
-  folder1 = "RQ1-seed8"
-  folder2 = "RQ1-seed8-noise0.05"
-  produceMcNemarResult(folder1,folder2)
-  
-  folder1 = "RQ1-seed9"
-  folder2 = "RQ1-seed9-noise0.05"
-  produceMcNemarResult(folder1,folder2)
-  
-  folder1 = "RQ1-seed10"
-  folder2 = "RQ1-seed10-noise0.05"
-  produceMcNemarResult(folder1,folder2)
-  
-  folder1 = "RQ1-seed11"
-  folder2 = "RQ1-seed11-noise0.05"
-  produceMcNemarResult(folder1,folder2)
   
 }
  

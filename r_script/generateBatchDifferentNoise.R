@@ -12,15 +12,21 @@ files <-
              full.names = T)
 
 
-seeds <- c('1','2','3','4','5','6','7','8','9','10','11')
+# seeds <- c('1','2','3','4','5','6','7','8','9','10','11')
+seeds <- as.character(1:50)
+
+
 noises <- c('0','0.05','0.1')
 
-f_sampleFrequency = '1'
-q_timeFrequency = '1'
+f_sampleFrequency = '1000'
+q_timeFrequency = '1000'
+
+# f_sampleFrequency = '1'
+# q_timeFrequency = '1'
 
 validation = 'Bootstrap-Validation'
 
-script_file <- paste('experiment-allNoise.sh',sep='')
+script_file <- paste('experiment-all50seeds.sh',sep='')
 for(noise in noises){
   for(seed in seeds){
    # script_file <- paste('experiment-differentNoise-seed',seed,'.sh',sep='')
