@@ -1,9 +1,11 @@
 
-library("stringr")  
+
+library("parallel")
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source('mcnemar.R')
 
-producePairedResult <- function(folder1,folder2){
+
+producePairedResult <- function(folder1,folder2,interval){
   
   files1 <- list.files(path = folder1,pattern = 'detail.csv$')
   files2 <- list.files(path = folder2,pattern = 'detail.csv$')
@@ -84,60 +86,103 @@ produceMcNemarResult <- function(folder1,folder2,interval=1000){
 }
 
 
+parallel_run <- function(example_element){
+  library("stringr")  
+  folder1 <- example_element$folder1
+  folder2 <- example_element$folder2
+  mcnemar_test <- example_element$mcnemar_test
+  cat(folder1,folder2,'\n')
+  if(mcnemar_test){
+    produceMcNemarResult(folder1,folder2,interval)
+  }else{
+    producePairedResult(folder1,folder2,interval)
+  }
+}
+
+
+parallel_run2 <- function(example_element){
+  library("stringr")  
+  folder1 <- example_element$folder1
+  folder2 <- example_element$folder2
+  folder3 <- example_element$folder2
+  mcnemar_test <- example_element$mcnemar_test
+  
+  cat(folder1,folder2,folder3,'\n')
+  
+  if(mcnemar_test){
+    produceMcNemarResult(folder1,folder2,interval)
+    produceMcNemarResult(folder1,folder3,interval)
+
+  }else{
+    producePairedResult(folder1,folder2,interval)
+    producePairedResult(folder1,folder3,interval)
+  }
+}
 
 Type1_error <- function(df_folders,maxPair=50,mcnemar_test=F){
   counter <- 1
   folders0 <- df_folders$folders0
   folders005 <- df_folders$folders005
   folders01 <- df_folders$folders01
+  detectCores()
+  cl <- makeCluster(12)
   
+  clusterExport(cl,c("produceMcNemarResult",
+                     "producePairedResult",
+                     "scenario",
+                     "fold","eva",
+                     "postfix",
+                     "folds",
+                     "McNemar",
+                     "interval"),envir=environment())
+  example_list <- list()
   for(i in 1:length(folders0)){
     for(j in (i+1):length(folders0)){
       if(counter > maxPair){
         break
       }
-      folder1 <- folders0[i]
-      folder2 <- folders0[j]
-      cat(folder1,folder2,'\n')
-      if(mcnemar_test){
-        produceMcNemarResult(folder1,folder2,interval=1000)
-      }else{
-        producePairedResult(folder1,folder2)
-      }
+      example_list[[length(example_list)+1]] <- list(folder1=folders0[i], folder2 = folders0[j],mcnemar_test=mcnemar_test)
       counter <- counter + 1
     }
   }
+  parLapply(cl,example_list,parallel_run)
+  stopCluster(cl)
 }
 
 
-Type2_error <- function(maxPair=50,mcnemar_test=F){
+Type2_error <- function(df_folders,maxPair=50,mcnemar_test=F){
   folders0 <- df_folders$folders0
   folders005 <- df_folders$folders005
   folders01 <- df_folders$folders01
   
   counter <- 1
-  i <- 11
+  
+  detectCores()
+  cl <- makeCluster(12)
+  clusterExport(cl,c("produceMcNemarResult",
+                     "producePairedResult",
+                     "scenario",
+                     "fold","eva",
+                     "postfix",
+                     "folds",
+                     "McNemar",
+                     "interval"),envir=environment())
+  example_list <- list()
   for(i in 1:length(folders0)){
     
       if(counter > maxPair){
         break
       }
-      folder1 <- folders0[i]
-      folder2 <- folders005[i]
-      folder3 <- folders01[i]
-      
-      cat(folder1,folder2,folder3,'\n')
-      if(mcnemar_test){
-        produceMcNemarResult(folder1,folder2)
-        produceMcNemarResult(folder1,folder3)
-        
-      }else{
-        producePairedResult(folder1,folder2)
-        producePairedResult(folder1,folder3)
-        
-      }
+      example_list[[length(example_list)+1]] <- list(folder1=folders0[i], 
+                                                     folder2 = folders005[i],
+                                                     folder3 = folders01[i],
+                                                     mcnemar_test=mcnemar_test)
       counter <- counter + 1
+  
   }
+  parLapply(cl,example_list,parallel_run)
+  stopCluster(cl)
+  
   
 }
 
@@ -148,13 +193,14 @@ fold = '5Fold'
 eva = 'FF0.99'
 postfix = "detail"
 folds = 0:4
-interval = 1
 indicators = c('Recall for class 1 (percent)',
                'Kappa Recall Temporal Statistic 1 (percent)',
                'Gmean for recall  (percent)',
                'Kappa Gmean Temporal Statistic  (percent)',
                'FPR for class 1 (percent)',
                'Kappa FPR Temporal Statistic 1 (percent)')
+
+
 
 batchFolder <- function(seeds){
   folders0 <- paste('seed',seeds,'-noise0',sep='')
@@ -164,14 +210,20 @@ batchFolder <- function(seeds){
 }
 
 
+# for(scenario in scenarios){
+#   seeds <- 1:5
+#   interval = 1000
+#   df_folders <- batchFolder(seeds)
+#   setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+#   setwd('./result/differentNoise/HATCL-simple/')
+#   Type1_error(df_folders,maxPair=10,mcnemar_test = T)
+# 
+# }
+
 for(scenario in scenarios){
-  seeds <- 1:5
-  df_folders <- batchFolder(seeds)
-  setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-  setwd('./result/differentNoise/HATCL-simple/')
-  Type1_error(df_folders,maxPair=10,mcnemar_test = T)
-  
   seeds <- 1:10
+  interval = 1000
+  df_folders <- batchFolder(seeds)
   setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
   setwd('./result/differentNoise/HATCL-simple/')
   Type2_error(df_folders,maxPair=10,mcnemar_test = T)
@@ -180,6 +232,7 @@ for(scenario in scenarios){
  
 # for(scenario in scenarios){
 #   seeds <- 1:50
+#   interval <- 1
 #   setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 #   setwd('./result/differentNoise/HATCL50/')
 #   Type1_error(df_folders,mcnemar_test = F)
