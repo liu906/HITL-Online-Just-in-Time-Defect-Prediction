@@ -1,10 +1,10 @@
 library(nonpar)
 
 
-# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-# getwd()
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+getwd()
 
-setwd(dir = '/media/lxt/TOSHIBA EXT/moa/r_script/')
+# setwd(dir = '/media/lxt/TOSHIBA EXT/moa/r_script/')
 
 producePvalue <- function(file_path){
   df <- read.csv(file = file_path,row.names = 1,check.names = F)
