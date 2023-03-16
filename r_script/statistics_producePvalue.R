@@ -71,6 +71,7 @@ producePvalue <- function(file_path,res_file_path,setting,conf_level){
 }
   
 parallel_run <- function(df){
+  
   library(nonpar)
   file_path <- df$file_path
   res_file_path <- df$res_file_path
@@ -94,15 +95,13 @@ summary_pvalue <- function(res_root='result/differentNoise/HATCL50/pairedResult/
   
 
   for(file in files){
-  
     cat(file,'\n')
     example_list[[length(example_list)+1]] <- list(file_path=file.path(res_root,file), 
                                                    res_file_path = res_file_path,
                                                    setting = setting,
-                                                   conf_level = conf_level)
-  }
+                                                 conf_level = conf_level)}
   
-  cl <- makeCluster(14)
+  cl <- makeCluster(14,output='xxx.log')
   clusterExport(cl,c("producePvalue"),envir=environment())
   list_return_df <- parLapply(cl,example_list,parallel_run)
   stopCluster(cl)
@@ -125,6 +124,7 @@ summary_pvalue <- function(res_root='result/differentNoise/HATCL50/pairedResult/
   for (scenario in scenarios) {
     for(indicator in indicators){
       sub_df <- df[df$scenario== scenario & df$indicator== indicator, ]
+      
       sub_df.noise0.1 <- sub_df[endsWith(sub_df$col2,'noise0.1'),]
       for(statistic in unique(df$statistic)){
         item_df <- sub_df.noise0.1[sub_df.noise0.1$statistic==statistic,'pvalue'] 
@@ -235,12 +235,13 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 getwd()
 
 
-if(F){
+if(T){
   summary_res_file <- 'RQ3/30Fold-pvalue_summary-setting3.csv'
   write(paste('scenario','comparison','indicator','statistic','ratio_rejectN0',sep=','),
         file=summary_res_file,
         append = F)
   summary_mcnemar(root_path='result/differentNoise/s30F/pairedResult/')
+  
   summary_pvalue(res_root='result/differentNoise/30F/pairedResult/',
                  res_file_path='RQ3/30Fold-pvalue-setting3.csv',
                  setting = 3)
@@ -248,7 +249,7 @@ if(F){
               final_path='RQ3/30Fold-folumated_summary_pvalue-setting3.csv')
   
 }
-if(F){
+if(T){
   summary_res_file <- 'RQ3/30Fold-pvalue_summary-setting2.csv'
   write(paste('scenario','comparison','indicator','statistic','ratio_rejectN0',sep=','),
         file=summary_res_file,
@@ -262,7 +263,7 @@ if(F){
   
 }
 
-if(F){
+if(T){
   summary_res_file <- 'RQ3/30Fold-pvalue_summary-setting1.csv'
   write(paste('scenario','comparison','indicator','statistic','ratio_rejectN0',sep=','),
         file=summary_res_file,append = F)
@@ -274,4 +275,17 @@ if(F){
               final_path='RQ3/30Fold-folumated_summary_pvalue-setting1.csv')
   
 }
+
+
+
+
+
+
+# files <- list.files(res_root)
+# for(file in files){
+#   df <- read.csv(file.path(res_root,file),row.names = 1,check.names = F)
+#   temp <- wilcox.test(df[,6],df[,7],paired = F,conf.level = conf_level)$p.value
+#   cat(temp,'\n')
+# }
+
 

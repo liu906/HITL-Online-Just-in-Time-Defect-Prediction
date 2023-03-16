@@ -7,9 +7,6 @@ library('dplyr')
 
 producePairedResult <- function(folder1,folder2,interval){
   cat(folder1,folder2,'\n')
-  # folder1 <- "seed1-noise0"
-  # folder2 <- "seed45-noise0"
-  # seed1-noise0 seed45-noise0 
   
   files1 <- list.files(path = folder1,pattern = 'detail.csv$')
   files2 <- list.files(path = folder2,pattern = 'detail.csv$')
@@ -37,7 +34,9 @@ producePairedResult <- function(folder1,folder2,interval){
         counter = 1
         v1 <- value1[idx_sep]
         v2 <- value2[idx_sep]
-        sub_df <- data.frame(scenario=scenario,dataset=file,fold=fold,`#instances`=idx_sep,indicator=indicator,`folder1`=v1,`folder2`=v2,check.names=F)
+        sub_df <- data.frame(scenario=scenario,dataset=file,fold=fold,`#instances`=idx_sep,indicator=indicator,folder1=v1,folder2=v2,check.names=F)
+        colnames(sub_df)[6] = folder1
+        colnames(sub_df)[7] = folder2
         if(first_flag){
           first_flag <- F
           total_res <- sub_df
@@ -95,7 +94,7 @@ produceMcNemarResult <- function(folder1,folder2,interval=1000){
         first_flag = F
         res_df <- sub_df
       }else{
-        cat('222')
+        
         res_df <- rbind(res_df,sub_df)
       }
     
@@ -260,7 +259,7 @@ batchFolder <- function(seeds){
   return(data.frame(folders0,folders005,folders01))
 }
 
-if(T){
+if(F){
   for(scenario in scenarios){
     seeds <- 1:5
     interval = 1000
@@ -272,7 +271,7 @@ if(T){
   }
 }
 
-if(T){
+if(F){
   for(scenario in scenarios){
     seeds <- 1:10
     interval = 1000
@@ -283,7 +282,7 @@ if(T){
   }
 }
 
-if(F){
+if(T){
   for(scenario in scenarios){
     seeds <- 1:50
     interval <- 1
@@ -291,7 +290,7 @@ if(F){
     setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
     setwd('./result/differentNoise/30F/')
     
-    #Type1_error(df_folders,maxPair=50,mcnemar_test = F)
+    Type1_error(df_folders,maxPair=50,mcnemar_test = F)
     Type2_error(df_folders,maxPair=50,mcnemar_test = F)
   }
 } 
