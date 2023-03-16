@@ -3,9 +3,13 @@
 library("parallel")
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source('mcnemar.R')
-
+library('dplyr')
 
 producePairedResult <- function(folder1,folder2,interval){
+  cat(folder1,folder2,'\n')
+  # folder1 <- "seed1-noise0"
+  # folder2 <- "seed45-noise0"
+  # seed1-noise0 seed45-noise0 
   
   files1 <- list.files(path = folder1,pattern = 'detail.csv$')
   files2 <- list.files(path = folder2,pattern = 'detail.csv$')
@@ -14,31 +18,36 @@ producePairedResult <- function(folder1,folder2,interval){
   
   first_flag = TRUE
   for(idx in 1:length(files2)){
-    df1 = read.csv(file.path(folder1,files1[idx]),check.names = FALSE)
-    df2 = read.csv(file.path(folder2,files2[idx]),check.names = FALSE)
     
+    df1 <- read.table(file.path(folder1,files1[idx]),sep = ',',check.names = F,colClasses = x,header = T)
+    df2 <- read.table(file.path(folder2,files2[idx]),sep = ',',check.names = F,colClasses = x,header = T)
+    
+    file <- strsplit(files1[idx],'_')[[1]][2]
+    cat('file ',file,'\n')
+    system.time(
     for(indicator in indicators){
+      #cat('indicator ',indicator,'\n')
       for(fold in folds){
-        
+        #cat('fold ',fold,'\n') 
         value1 = as.numeric(df1[as.numeric(df1$fold)==fold,indicator])
         value2 = as.numeric(df2[as.numeric(df2$fold)==fold,indicator])
+        min_len <- min(length(value1),length(value2))
+        
+        idx_sep <- seq(interval,length(value1),interval)
         counter = 1
-        while(counter*interval <= length(value1) && counter*interval <= length(value2)){
-          v1 = value1[interval*counter]
-          v2 = value2[interval*counter]
-          
-          if(first_flag){
-            first_flag = FALSE
-            total_res = data.frame(matrix(nrow = 0,ncol = 7))
-            colnames(total_res)=c('scenario','dataset','fold','#instances','indicator',folder1,folder2)
-          }
-          file <- strsplit(files1[idx],'_')[[1]][2]
-          total_res[nrow(total_res)+1,] = c(scenario,file,fold,interval*counter,indicator,v1,v2)
-          counter = counter+1
+        v1 <- value1[idx_sep]
+        v2 <- value2[idx_sep]
+        sub_df <- data.frame(scenario=scenario,dataset=file,fold=fold,`#instances`=idx_sep,indicator=indicator,`folder1`=v1,`folder2`=v2,check.names=F)
+        if(first_flag){
+          first_flag <- F
+          total_res <- sub_df
+        }else{
+          total_res <- rbind(total_res,sub_df)
         }
+
       }
     }
-    
+    )
   }
   
   pat = paste(scenario,fold,eva,postfix,sep='_')
@@ -63,30 +72,43 @@ produceMcNemarResult <- function(folder1,folder2,interval=1000){
   write(paste('scenario','dataset','fold','#instances','folder1','folder2','mcnemar',sep = ','), file=res_file_path, append=F)
   
   
-  
+  first_flag = T
   for(idx in 1:length(files1)){
-    df1 = read.csv(file.path(folder1,files1[idx]),check.names = FALSE)
-    df2 = read.csv(file.path(folder2,files2[idx]),check.names = FALSE)
+    cat(idx,'\n')
+    df1 <- read.table(file.path(folder1,files1[idx]),sep = ',',check.names = F,colClasses = y,header = T)
+    df2 <- read.table(file.path(folder2,files2[idx]),sep = ',',check.names = F,colClasses = y,header = T)
     
+    file <- strsplit(files1[idx],'_')[[1]][2]
     for(fold in folds){
       
       value1 = df1[as.numeric(df1$fold)==fold,]
       value2 = df2[as.numeric(df2$fold)==fold,]
       
       list_m <- McNemar(value1,value2,interval)
-      counter = 1
-      while(counter <= length(list_m)){
-        sample_value = list_m[counter]
-        file <- strsplit(files1[idx],'_')[[1]][2]
-        write(paste(scenario,file,fold,interval*counter,folder1,folder2,sample_value,sep = ','), file=res_file_path, append=T)
-        counter = counter+1
+      sub_df <- data.frame(scenario=scenario,dataset=file,fold=fold,
+                   `#instances`=interval*(1:length(list_m)),
+                   `folder1`=folder1,
+                   `folder2`=folder2,
+                   mcnemar=list_m,
+                   check.names = F)
+      if(first_flag){
+        first_flag = F
+        res_df <- sub_df
+      }else{
+        cat('222')
+        res_df <- rbind(res_df,sub_df)
       }
+    
     }
   }
+  
+  write.table(res_df, file=res_file_path, sep = ",", col.names = !file.exists(file=res_file_path), append = T)
 }
 
 
+
 parallel_run <- function(example_element){
+
   library("stringr")  
   folder1 <- example_element$folder1
   folder2 <- example_element$folder2
@@ -101,16 +123,17 @@ parallel_run <- function(example_element){
 
 
 parallel_run2 <- function(example_element){
+
   library("stringr")  
   folder1 <- example_element$folder1
   folder2 <- example_element$folder2
-  folder3 <- example_element$folder2
+  folder3 <- example_element$folder3
   mcnemar_test <- example_element$mcnemar_test
   
   cat(folder1,folder2,folder3,'\n')
   
   if(mcnemar_test){
-    produceMcNemarResult(folder1,folder2,interval)
+   produceMcNemarResult(folder1,folder2,interval)
     produceMcNemarResult(folder1,folder3,interval)
 
   }else{
@@ -125,7 +148,8 @@ Type1_error <- function(df_folders,maxPair=50,mcnemar_test=F){
   folders005 <- df_folders$folders005
   folders01 <- df_folders$folders01
   detectCores()
-  cl <- makeCluster(12)
+  cl <- makeCluster(14,outfile="D:/work/real-world-evaluation/log3.txt")
+  
   
   clusterExport(cl,c("produceMcNemarResult",
                      "producePairedResult",
@@ -134,7 +158,10 @@ Type1_error <- function(df_folders,maxPair=50,mcnemar_test=F){
                      "postfix",
                      "folds",
                      "McNemar",
-                     "interval"),envir=environment())
+                     "interval",
+                     "indicators",
+                     "x",
+                     "y"),envir=environment())
   example_list <- list()
   for(i in 1:length(folders0)){
     for(j in (i+1):length(folders0)){
@@ -145,6 +172,7 @@ Type1_error <- function(df_folders,maxPair=50,mcnemar_test=F){
       counter <- counter + 1
     }
   }
+  
   parLapply(cl,example_list,parallel_run)
   stopCluster(cl)
 }
@@ -158,7 +186,7 @@ Type2_error <- function(df_folders,maxPair=50,mcnemar_test=F){
   counter <- 1
   
   detectCores()
-  cl <- makeCluster(12)
+  cl <- makeCluster(14,outfile="D:/work/real-world-evaluation/log2.txt")
   clusterExport(cl,c("produceMcNemarResult",
                      "producePairedResult",
                      "scenario",
@@ -166,7 +194,10 @@ Type2_error <- function(df_folders,maxPair=50,mcnemar_test=F){
                      "postfix",
                      "folds",
                      "McNemar",
-                     "interval"),envir=environment())
+                     "interval",
+                     "indicators",
+                     "x",
+                     "y"),envir=environment())
   example_list <- list()
   for(i in 1:length(folders0)){
     
@@ -180,7 +211,8 @@ Type2_error <- function(df_folders,maxPair=50,mcnemar_test=F){
       counter <- counter + 1
   
   }
-  parLapply(cl,example_list,parallel_run)
+  
+  parLapply(cl,example_list,parallel_run2)
   stopCluster(cl)
   
   
@@ -190,9 +222,11 @@ Type2_error <- function(df_folders,maxPair=50,mcnemar_test=F){
 # scenarios = c('DelayedCVIdeal','DelayedCVExtension','DelayedCVPosNegWindow(7-90)')
 scenarios = c('DelayedCVPosNegWindow(7-90)')
 fold = '5Fold'
+fold = '30Fold'
 eva = 'FF0.99'
 postfix = "detail"
 folds = 0:4
+folds = 0:29
 indicators = c('Recall for class 1 (percent)',
                'Kappa Recall Temporal Statistic 1 (percent)',
                'Gmean for recall  (percent)',
@@ -200,7 +234,24 @@ indicators = c('Recall for class 1 (percent)',
                'FPR for class 1 (percent)',
                'Kappa FPR Temporal Statistic 1 (percent)')
 
+x <- c()
+for(i in 1:46){
+  if(i %in% c(3,33,35,36,38,42,45)){
+    x[length(x)+1] <- "numeric"
+  }else{
+    x[length(x)+1] <- "NULL"
+  }
+}
 
+
+y <- c()
+for(i in 1:14){
+  if(i %in% c(3,7,8,9,10)){
+    y[length(y)+1] <- "numeric"
+  }else{
+    y[length(y)+1] <- "NULL"
+  }
+}
 
 batchFolder <- function(seeds){
   folders0 <- paste('seed',seeds,'-noise0',sep='')
@@ -209,32 +260,57 @@ batchFolder <- function(seeds){
   return(data.frame(folders0,folders005,folders01))
 }
 
-
-# for(scenario in scenarios){
-#   seeds <- 1:5
-#   interval = 1000
-#   df_folders <- batchFolder(seeds)
-#   setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-#   setwd('./result/differentNoise/HATCL-simple/')
-#   Type1_error(df_folders,maxPair=10,mcnemar_test = T)
-# 
-# }
-
-for(scenario in scenarios){
-  seeds <- 1:10
-  interval = 1000
-  df_folders <- batchFolder(seeds)
-  setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-  setwd('./result/differentNoise/HATCL-simple/')
-  Type2_error(df_folders,maxPair=10,mcnemar_test = T)
+if(T){
+  for(scenario in scenarios){
+    seeds <- 1:5
+    interval = 1000
+    df_folders <- batchFolder(seeds)
+    setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+    setwd('./result/differentNoise/s30F/')
+    Type1_error(df_folders,maxPair=2,mcnemar_test = T)
+    
+  }
 }
 
- 
-# for(scenario in scenarios){
-#   seeds <- 1:50
-#   interval <- 1
-#   setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-#   setwd('./result/differentNoise/HATCL50/')
-#   Type1_error(df_folders,mcnemar_test = F)
-#   Type2_error(df_folders,mcnemar_test = F)
-# }
+if(T){
+  for(scenario in scenarios){
+    seeds <- 1:10
+    interval = 1000
+    df_folders <- batchFolder(seeds)
+    setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+    setwd('./result/differentNoise/s30F/')
+    Type2_error(df_folders,maxPair=2,mcnemar_test = T)
+  }
+}
+
+if(F){
+  for(scenario in scenarios){
+    seeds <- 1:50
+    interval <- 1
+    df_folders <- batchFolder(seeds)
+    setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+    setwd('./result/differentNoise/30F/')
+    
+    #Type1_error(df_folders,maxPair=50,mcnemar_test = F)
+    Type2_error(df_folders,maxPair=50,mcnemar_test = F)
+  }
+} 
+
+
+if(F){
+  folders <- list.files(pattern = 'noise')
+  for(folder in folders){
+    files <- list.files(folder,pattern = 'detail')
+    for(file in files){
+      df <- read.csv(file.path(folder,file),check.names = F)
+      answer <- which(df$`learning evaluation instances on certain fold`=='learning evaluation instances on certain fold')
+      if(length(answer)>0){
+        df <- df[1:(answer-1),]
+        write.csv(df,file = file.path(folder,file),quote = F,row.names = F)
+      }
+    }
+  }
+  
+}
+
+

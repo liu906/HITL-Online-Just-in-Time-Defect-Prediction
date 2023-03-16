@@ -1,101 +1,210 @@
 library(nonpar)
 
-
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-getwd()
-
 # setwd(dir = '/media/lxt/TOSHIBA EXT/moa/r_script/')
-
-producePvalue <- function(file_path){
+options(scipen=999)
+producePvalue <- function(file_path,res_file_path,setting,conf_level){
   df <- read.csv(file = file_path,row.names = 1,check.names = F)
- 
+  cols <- c('scenario','dataset','instance','indicator','col1','col2','statistic','pvalue')
+  return_df <- data.frame(matrix(nrow = 0,ncol = length(cols)))
+  colnames(return_df) <- cols
+    
   scenarios = unique(df$scenario)
   folds = unique(df$fold)
   datasets = unique(df$dataset)
-  pair_length = length(folds) * length(datasets)
   indicators <- unique(df$indicator)
-  sample_intervals <- unique(df$`#instances`)
+
   for(scenario in scenarios){
     for(indicator in indicators){
-      for(sample_interval in sample_intervals){
-        sub_df <- df[df$scenario == scenario & df$indicator == indicator & df$`#instances` == sample_interval, ]
-        if(nrow(sub_df) < 30){
-          
-          next
-        }else{
-          pvalue <- wilcox.test(sub_df[,6],sub_df[,7],paired = T,conf.level = conf_level)$p.value
-          
-          wline <- paste(scenario,sample_interval,indicator,colnames(sub_df)[6],colnames(sub_df)[7],'wilcox',pvalue,sep = ',')
-          write(wline, file=res_file_path, append=T)
-          pvalue_str <- signtest(sub_df[,6]-sub_df[,7], m=0, conf.level=conf_level, exact=FALSE)
+      for(dataset in datasets){
+        
+        sub_df <- df[df$scenario == scenario & df$indicator == indicator & df$dataset==dataset, ]
+        instances <- unique(sub_df$`#instances`)
+        if(setting==3){
+          for(instance in instances){
+            sub_df_ <- sub_df[sub_df$`#instances`==instance,]
+            if(nrow(sub_df_)!=length(folds)){
+              next
+            }
+            cat('mode3 #sample ',length(sub_df_[,6]),'\n')
+            pvalue <- wilcox.test(sub_df_[,6],sub_df_[,7],paired = F,conf.level = conf_level)$p.value
+            return_df[nrow(return_df)+1,] <- c(scenario,dataset,instance,indicator,colnames(sub_df)[6],colnames(sub_df)[7],'wilcox',pvalue)
+            pvalue_str <- signtest(sub_df_[,6] - sub_df_[,7], m=0, conf.level=conf_level, exact=FALSE)
+            pvalue <- substr(pvalue_str@PVal,nchar("The p-value is   "),nchar(pvalue_str@PVal))
+            return_df[nrow(return_df)+1,] <- c(scenario,dataset,instance,indicator,colnames(sub_df)[6],colnames(sub_df)[7],'signtest',pvalue)
+            
+          }
+        }else if(setting==2){
+          idx = length(instances)
+          while(idx>0){
+            sub_df_ <- sub_df[sub_df$`#instances`==instances[idx],]
+            if(nrow(sub_df_)==length(folds)){
+              break
+            }
+            idx = idx - 1
+          }
+          cat('mode2 #sample ',length(sub_df_[,6]),'\n')
+          pvalue <- wilcox.test(sub_df_[,6],sub_df_[,7],paired = F,conf.level = conf_level)$p.value
+          return_df[nrow(return_df)+1,] <- c(scenario,dataset,instances[idx],indicator,colnames(sub_df)[6],colnames(sub_df)[7],'wilcox',pvalue)
+          pvalue_str <- signtest(sub_df_[,6] - sub_df_[,7], m=0, conf.level=conf_level, exact=FALSE)
           pvalue <- substr(pvalue_str@PVal,nchar("The p-value is   "),nchar(pvalue_str@PVal))
-          wline <- paste(scenario,sample_interval,indicator,colnames(sub_df)[6],colnames(sub_df)[7],'signtest',pvalue,sep = ',')
-          write(wline, file=res_file_path, append=T)
+          return_df[nrow(return_df)+1,] <- c(scenario,dataset,instances[idx],indicator,colnames(sub_df)[6],colnames(sub_df)[7],'signtest',pvalue)
+         
+        }else if(setting==1){
+          sub_df_ <- sub_df
+          instance <- 'all instances by step'
+          cat('mode1 #sample ',length(sub_df_[,6]),'\n')
+          pvalue <- wilcox.test(sub_df_[,6],sub_df_[,7],paired = F,conf.level = conf_level)$p.value
+          return_df[nrow(return_df)+1,] <- c(scenario,dataset,instance,indicator,colnames(sub_df)[6],colnames(sub_df)[7],'wilcox',pvalue)
+          pvalue_str <- signtest(sub_df_[,6] - sub_df_[,7], m=0, conf.level=conf_level, exact=FALSE)
+          pvalue <- substr(pvalue_str@PVal,nchar("The p-value is   "),nchar(pvalue_str@PVal))
+          
+          return_df[nrow(return_df)+1,] <- c(scenario,dataset,instance,indicator,colnames(sub_df)[6],colnames(sub_df)[7],'signtest',pvalue)
           
         }
+
+
       }
-    } 
+    }
+  }
+  return(return_df)
+
+}
+  
+parallel_run <- function(df){
+  library(nonpar)
+  file_path <- df$file_path
+  res_file_path <- df$res_file_path
+  setting <- df$setting
+  conf_level <- df$conf_level
+  return_df <- producePvalue(file_path,res_file_path,setting,conf_level)
+  return(return_df)
+}
+
+
+
+
+
+summary_pvalue <- function(res_root='result/differentNoise/HATCL50/pairedResult/',res_file_path='RQ3/pvalue.csv',setting=3){
+  
+  
+  # write(paste('scenario','dataset','instance','indicator','col1','col2','statistic','pvalue',sep = ','), file=res_file_path, append=F)
+  conf_level = 0.95
+  files <- list.files(res_root)
+  example_list <- list()
+  
+
+  for(file in files){
+  
+    cat(file,'\n')
+    example_list[[length(example_list)+1]] <- list(file_path=file.path(res_root,file), 
+                                                   res_file_path = res_file_path,
+                                                   setting = setting,
+                                                   conf_level = conf_level)
+  }
+  
+  cl <- makeCluster(14)
+  clusterExport(cl,c("producePvalue"),envir=environment())
+  list_return_df <- parLapply(cl,example_list,parallel_run)
+  stopCluster(cl)
+  ####################################
+  for(idx in 1:length(list_return_df)){
+    sub_df <- list_return_df[[idx]]
+    if(idx==1){
+      df = sub_df
+    }else{
+      df = rbind(df,sub_df)
+    }
+  }
+  
+  
+  # df <- read.csv(res_file_path,check.names = F)
+  indicators <- unique(df$indicator)
+  scenarios <- unique(df$scenario)
+  
+  
+  for (scenario in scenarios) {
+    for(indicator in indicators){
+      sub_df <- df[df$scenario== scenario & df$indicator== indicator, ]
+      sub_df.noise0.1 <- sub_df[endsWith(sub_df$col2,'noise0.1'),]
+      for(statistic in unique(df$statistic)){
+        item_df <- sub_df.noise0.1[sub_df.noise0.1$statistic==statistic,'pvalue'] 
+        ratio_rejectN0 <- sum(item_df < 1 - conf_level) / length(item_df)
+        one <- paste(scenario,'normal vs. noise0.1',indicator,statistic,ratio_rejectN0,sep = ',')
+        write(one, file=summary_res_file, append=T)
+      }
+      sub_df.noise0.05 <- sub_df[endsWith(sub_df$col2,'noise0.05'),]
+      for(statistic in unique(df$statistic)){
+        item_df <- sub_df.noise0.05[sub_df.noise0.05$statistic==statistic,'pvalue'] 
+        ratio_rejectN0 <- sum(item_df < 1 - conf_level) / length(item_df)
+        one <- paste(scenario,'normal vs. noise0.05',indicator,statistic,ratio_rejectN0,sep = ',')
+        write(one, file=summary_res_file, append=T)
+      }
+      
+      
+      sub_df.normal <- sub_df[!endsWith(sub_df$col2,'noise0.05') & !endsWith(sub_df$col2,'noise0.1'),]
+      for(statistic in unique(df$statistic)){
+        item_df <- sub_df.normal[sub_df.normal$statistic==statistic,'pvalue'] 
+        ratio_rejectN0 <- sum(item_df < 1 - conf_level) / length(item_df)
+        one <- paste(scenario,'normal vs. normal',indicator,statistic,ratio_rejectN0,sep = ',')
+        write(one, file=summary_res_file, append=T)
+      }
+    }
   }
   
 }
-  
-  
-setwd('../experimentResult')
-getwd()
-res_file_path <- 'RQ3/pvalue.csv'
-write(paste('scenario','#instances','indicator','col1','col2','statistic','pvalue',sep = ','), file=res_file_path, append=F)
-conf_level = 0.95
 
-output_files <- function(){
-  files <- list.files('RQ3')
-  files <- files[startsWith(files,'paired_performance')]
+
+
+
+summary_mcnemar <- function(threshold=3.8414588,root_path='result/differentNoise/HATCL-simple/pairedResult/'){
+  
+  files <- list.files(root_path)
+  files <- files[startsWith(files,'mcnemar')]
+  first_flag = T
   
   for(file in files){
-    producePvalue(file_path = file.path('RQ3',file))
-  }
-}
-
-output_files()
-
-df <- read.csv(res_file_path,check.names = F)
-indicators <- unique(df$indicator)
-scenarios <- unique(df$scenario)
-summary_res_file <- 'RQ3/pvalue_summary.csv'
-if(!file.exists(summary_res_file)){
-  write(paste('scenario','comparison','indicator','statistic','ratio_rejectN0',sep=','),file=summary_res_file,append = F)
-}
-
-for (scenario in scenarios) {
-  for(indicator in indicators){
-    sub_df <- df[df$scenario== scenario & df$indicator== indicator, ]
-    sub_df.noise0.1 <- sub_df[endsWith(sub_df$col2,'noise0.1'),]
-    for(statistic in unique(df$statistic)){
-      item_df <- sub_df.noise0.1[sub_df.noise0.1$statistic==statistic,'pvalue'] 
-      ratio_rejectN0 <- sum(item_df < 1 - conf_level) / length(item_df)
-      one <- paste(scenario,'normal vs. noise0.1',indicator,statistic,ratio_rejectN0,sep = ',')
-      write(one, file=summary_res_file, append=T)
-    }
-    sub_df.noise0.05 <- sub_df[endsWith(sub_df$col2,'noise0.05'),]
-    for(statistic in unique(df$statistic)){
-      item_df <- sub_df.noise0.05[sub_df.noise0.05$statistic==statistic,'pvalue'] 
-      ratio_rejectN0 <- sum(item_df < 1 - conf_level) / length(item_df)
-      one <- paste(scenario,'normal vs. noise0.05',indicator,statistic,ratio_rejectN0,sep = ',')
-      write(one, file=summary_res_file, append=T)
-    }
-    
-    
-    sub_df.normal <- sub_df[!endsWith(sub_df$col2,'noise0.05') & !endsWith(sub_df$col2,'noise0.1'),]
-    for(statistic in unique(df$statistic)){
-      item_df <- sub_df.normal[sub_df.normal$statistic==statistic,'pvalue'] 
-      ratio_rejectN0 <- sum(item_df < 1 - conf_level) / length(item_df)
-      one <- paste(scenario,'normal vs. normal',indicator,statistic,ratio_rejectN0,sep = ',')
-      write(one, file=summary_res_file, append=T)
+    sub_df <- read.csv(file.path(root_path,file),check.names = F)
+    if(first_flag){
+      df <- sub_df
+      first_flag <- F
+    }else{
+      colnames(df)
+      colnames(sub_df)
+      df <- rbind(df,sub_df)
     }
   }
+  
+  
+  
+  statistic <- 'mcnemar'
+  indicator <- '' # note McNemar is not related with indicator
+  for(scenario in unique(df$scenario)){
+    sub_df <- df[df$scenario == scenario,]
+    sub_df.noise0.1 <- sub_df[endsWith(sub_df$folder2,'noise0.1'),]
+    item_df <- sub_df.noise0.1[,'mcnemar'] 
+    ratio_rejectN0 <- sum(item_df > threshold) / length(item_df)
+    one <- paste(scenario,'normal vs. noise0.1',indicator,statistic,ratio_rejectN0,sep = ',')
+    write(one, file=summary_res_file, append=T)
+    
+    sub_df.noise0.05 <- sub_df[endsWith(sub_df$folder2,'noise0.05'),]
+    
+    item_df <- sub_df.noise0.05[,'mcnemar'] 
+    ratio_rejectN0 <- sum(item_df > threshold) / length(item_df)
+    one <- paste(scenario,'normal vs. noise0.05',indicator,statistic,ratio_rejectN0,sep = ',')
+    write(one, file=summary_res_file, append=T)
+    sub_df.normal <- sub_df[!endsWith(sub_df$folder2,'noise0.05') & !endsWith(sub_df$folder2,'noise0.1'),]
+    
+    item_df <- sub_df.normal[,'mcnemar'] 
+    ratio_rejectN0 <- sum(item_df > threshold) / length(item_df)
+    one <- paste(scenario,'normal vs. normal',indicator,statistic,ratio_rejectN0,sep = ',')
+    write(one, file=summary_res_file, append=T)
+    
+  }
+  
 }
 
-reconstruct <- function(){
-  df <- read.csv('RQ3/pvalue_summary.csv')
+reconstruct <- function(summary_res_file,final_path){
+  df <- read.csv(summary_res_file)
   new_df <- data.frame(matrix(nrow = 0,ncol = 2+1+2*(length(unique(df$indicator))-1)))
   
   first_flag = T
@@ -118,7 +227,51 @@ reconstruct <- function(){
       new_df[nrow(new_df)+1,] <- value
     }
   }
-  write.csv(new_df,file = 'RQ3/folumated_summary_pvalue.csv',row.names = F)
+  write.csv(new_df,file = final_path,row.names = F)
 
+}
+
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+getwd()
+
+
+if(F){
+  summary_res_file <- 'RQ3/30Fold-pvalue_summary-setting3.csv'
+  write(paste('scenario','comparison','indicator','statistic','ratio_rejectN0',sep=','),
+        file=summary_res_file,
+        append = F)
+  summary_mcnemar(root_path='result/differentNoise/s30F/pairedResult/')
+  summary_pvalue(res_root='result/differentNoise/30F/pairedResult/',
+                 res_file_path='RQ3/30Fold-pvalue-setting3.csv',
+                 setting = 3)
+  reconstruct(summary_res_file,
+              final_path='RQ3/30Fold-folumated_summary_pvalue-setting3.csv')
+  
+}
+if(F){
+  summary_res_file <- 'RQ3/30Fold-pvalue_summary-setting2.csv'
+  write(paste('scenario','comparison','indicator','statistic','ratio_rejectN0',sep=','),
+        file=summary_res_file,
+        append = F)
+  summary_mcnemar(root_path='result/differentNoise/s30F/pairedResult/')
+  summary_pvalue(res_root='result/differentNoise/30F/pairedResult/',
+                 res_file_path='RQ3/30Fold-pvalue-setting2.csv',
+                 setting = 2)
+  reconstruct(summary_res_file,
+              final_path='RQ3/30Fold-folumated_summary_pvalue-setting2.csv')
+  
+}
+
+if(F){
+  summary_res_file <- 'RQ3/30Fold-pvalue_summary-setting1.csv'
+  write(paste('scenario','comparison','indicator','statistic','ratio_rejectN0',sep=','),
+        file=summary_res_file,append = F)
+  summary_mcnemar(root_path='result/differentNoise/s30F/pairedResult/')
+  summary_pvalue(res_root='result/differentNoise/30F/pairedResult/',
+                 res_file_path='RQ3/30Fold-pvalue-setting1.csv',
+                 setting = 1)
+  reconstruct(summary_res_file,
+              final_path='RQ3/30Fold-folumated_summary_pvalue-setting1.csv')
+  
 }
 
