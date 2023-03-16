@@ -296,6 +296,9 @@ if(T){
 } 
 
 
+
+
+##########check data##############
 if(F){
   folders <- list.files(pattern = 'noise')
   for(folder in folders){

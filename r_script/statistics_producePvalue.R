@@ -74,6 +74,8 @@ parallel_run <- function(df){
   
   library(nonpar)
   file_path <- df$file_path
+  cat('file_path: ',file_path,'\n')
+  
   res_file_path <- df$res_file_path
   setting <- df$setting
   conf_level <- df$conf_level
@@ -101,9 +103,10 @@ summary_pvalue <- function(res_root='result/differentNoise/HATCL50/pairedResult/
                                                    setting = setting,
                                                  conf_level = conf_level)}
   
-  cl <- makeCluster(14,output='xxx.log')
+  cl <- makeCluster(14,outfile='xxx.log')
   clusterExport(cl,c("producePvalue"),envir=environment())
   list_return_df <- parLapply(cl,example_list,parallel_run)
+  
   stopCluster(cl)
   ####################################
   for(idx in 1:length(list_return_df)){
@@ -235,7 +238,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 getwd()
 
 
-if(T){
+if(F){
   summary_res_file <- 'RQ3/30Fold-pvalue_summary-setting3.csv'
   write(paste('scenario','comparison','indicator','statistic','ratio_rejectN0',sep=','),
         file=summary_res_file,
@@ -275,10 +278,6 @@ if(T){
               final_path='RQ3/30Fold-folumated_summary_pvalue-setting1.csv')
   
 }
-
-
-
-
 
 
 # files <- list.files(res_root)
