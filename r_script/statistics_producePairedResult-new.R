@@ -127,6 +127,8 @@ parallel_run2 <- function(example_element){
   folder1 <- example_element$folder1
   folder2 <- example_element$folder2
   folder3 <- example_element$folder3
+  folder4 <- example_element$folder4
+  folder5 <- example_element$folder5
   mcnemar_test <- example_element$mcnemar_test
   
   cat(folder1,folder2,folder3,'\n')
@@ -134,10 +136,14 @@ parallel_run2 <- function(example_element){
   if(mcnemar_test){
    produceMcNemarResult(folder1,folder2,interval)
     produceMcNemarResult(folder1,folder3,interval)
+    produceMcNemarResult(folder1,folder4,interval)
+    produceMcNemarResult(folder1,folder5,interval)
 
   }else{
     producePairedResult(folder1,folder2,interval)
     producePairedResult(folder1,folder3,interval)
+    producePairedResult(folder1,folder4,interval)
+    producePairedResult(folder1,folder5,interval)
   }
 }
 
@@ -181,6 +187,8 @@ Type2_error <- function(df_folders,maxPair=50,mcnemar_test=F){
   folders0 <- df_folders$folders0
   folders005 <- df_folders$folders005
   folders01 <- df_folders$folders01
+  folders02 <- df_folders$folders02
+  folders03 <- df_folders$folders03
   
   counter <- 1
   
@@ -206,6 +214,8 @@ Type2_error <- function(df_folders,maxPair=50,mcnemar_test=F){
       example_list[[length(example_list)+1]] <- list(folder1=folders0[i], 
                                                      folder2 = folders005[i],
                                                      folder3 = folders01[i],
+                                                     folder4 = folders02[i],
+                                                     folder5 = folders03[i],
                                                      mcnemar_test=mcnemar_test)
       counter <- counter + 1
   
@@ -219,7 +229,7 @@ Type2_error <- function(df_folders,maxPair=50,mcnemar_test=F){
 
 
 # scenarios = c('DelayedCVIdeal','DelayedCVExtension','DelayedCVPosNegWindow(7-90)')
-scenarios = c('DelayedCVPosNegWindow(7-90)')
+scenarios = c('DelayedCVIdeal')
 fold = '5Fold'
 fold = '30Fold'
 eva = 'FF0.99'
@@ -256,16 +266,21 @@ batchFolder <- function(seeds){
   folders0 <- paste('seed',seeds,'-noise0',sep='')
   folders005 <- paste('seed',seeds,'-noise0.05',sep='')
   folders01 <- paste('seed',seeds,'-noise0.1',sep='')
-  return(data.frame(folders0,folders005,folders01))
+  folders02 <- paste('seed',seeds,'-noise0.2',sep='')
+  folders03 <- paste('seed',seeds,'-noise0.3',sep='')
+  return(data.frame(folders0,folders005,folders01,folders02,folders03))
 }
 
+
+simple_path <- './result/differentNoise/LB-ideal-s/'
+all_path <- './result/differentNoise/LB-ideal/'
 if(F){
   for(scenario in scenarios){
     seeds <- 1:5
     interval = 1000
     df_folders <- batchFolder(seeds)
     setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-    setwd('./result/differentNoise/s30F/')
+    setwd(simple_path)
     Type1_error(df_folders,maxPair=2,mcnemar_test = T)
     
   }
@@ -277,7 +292,7 @@ if(F){
     interval = 1000
     df_folders <- batchFolder(seeds)
     setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-    setwd('./result/differentNoise/s30F/')
+    setwd(simple_path)
     Type2_error(df_folders,maxPair=2,mcnemar_test = T)
   }
 }
@@ -288,7 +303,7 @@ if(T){
     interval <- 1
     df_folders <- batchFolder(seeds)
     setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-    setwd('./result/differentNoise/30F/')
+    setwd(all_path)
     
     Type1_error(df_folders,maxPair=50,mcnemar_test = F)
     Type2_error(df_folders,maxPair=50,mcnemar_test = F)

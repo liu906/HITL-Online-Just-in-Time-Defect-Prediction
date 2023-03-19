@@ -26,7 +26,7 @@ producePvalue <- function(file_path,res_file_path,setting,conf_level){
               next
             }
             cat('mode3 #sample ',length(sub_df_[,6]),'\n')
-            pvalue <- wilcox.test(sub_df_[,6],sub_df_[,7],paired = F,conf.level = conf_level)$p.value
+            pvalue <- wilcox.test(sub_df_[,6],sub_df_[,7],paired = T,conf.level = conf_level)$p.value
             return_df[nrow(return_df)+1,] <- c(scenario,dataset,instance,indicator,colnames(sub_df)[6],colnames(sub_df)[7],'wilcox',pvalue)
             pvalue_str <- signtest(sub_df_[,6] - sub_df_[,7], m=0, conf.level=conf_level, exact=FALSE)
             pvalue <- substr(pvalue_str@PVal,nchar("The p-value is   "),nchar(pvalue_str@PVal))
@@ -143,6 +143,21 @@ summary_pvalue <- function(res_root='result/differentNoise/HATCL50/pairedResult/
         write(one, file=summary_res_file, append=T)
       }
       
+      sub_df.noise0.2 <- sub_df[endsWith(sub_df$col2,'noise0.2'),]
+      for(statistic in unique(df$statistic)){
+        item_df <- sub_df.noise0.2[sub_df.noise0.2$statistic==statistic,'pvalue'] 
+        ratio_rejectN0 <- sum(item_df < 1 - conf_level) / length(item_df)
+        one <- paste(scenario,'normal vs. noise0.2',indicator,statistic,ratio_rejectN0,sep = ',')
+        write(one, file=summary_res_file, append=T)
+      }
+      
+      sub_df.noise0.3 <- sub_df[endsWith(sub_df$col2,'noise0.3'),]
+      for(statistic in unique(df$statistic)){
+        item_df <- sub_df.noise0.3[sub_df.noise0.3$statistic==statistic,'pvalue'] 
+        ratio_rejectN0 <- sum(item_df < 1 - conf_level) / length(item_df)
+        one <- paste(scenario,'normal vs. noise0.3',indicator,statistic,ratio_rejectN0,sep = ',')
+        write(one, file=summary_res_file, append=T)
+      }
       
       sub_df.normal <- sub_df[!endsWith(sub_df$col2,'noise0.05') & !endsWith(sub_df$col2,'noise0.1'),]
       for(statistic in unique(df$statistic)){
@@ -201,7 +216,6 @@ summary_mcnemar <- function(threshold=3.8414588,root_path='result/differentNoise
     ratio_rejectN0 <- sum(item_df > threshold) / length(item_df)
     one <- paste(scenario,'normal vs. normal',indicator,statistic,ratio_rejectN0,sep = ',')
     write(one, file=summary_res_file, append=T)
-    
   }
   
 }
@@ -238,14 +252,17 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 getwd()
 
 
-if(F){
+mcnemar_root_path <- 'result/differentNoise/LB-ideal-s/pairedResult/'
+pvalue_root_path <- 'result/differentNoise/LB-ideal/pairedResult/'
+
+if(T){
   summary_res_file <- 'RQ3/30Fold-pvalue_summary-setting3.csv'
   write(paste('scenario','comparison','indicator','statistic','ratio_rejectN0',sep=','),
         file=summary_res_file,
         append = F)
-  summary_mcnemar(root_path='result/differentNoise/s30F/pairedResult/')
+  summary_mcnemar(root_path=mcnemar_root_path)
   
-  summary_pvalue(res_root='result/differentNoise/30F/pairedResult/',
+  summary_pvalue(res_root=pvalue_root_path,
                  res_file_path='RQ3/30Fold-pvalue-setting3.csv',
                  setting = 3)
   reconstruct(summary_res_file,
@@ -257,8 +274,8 @@ if(T){
   write(paste('scenario','comparison','indicator','statistic','ratio_rejectN0',sep=','),
         file=summary_res_file,
         append = F)
-  summary_mcnemar(root_path='result/differentNoise/s30F/pairedResult/')
-  summary_pvalue(res_root='result/differentNoise/30F/pairedResult/',
+  summary_mcnemar(root_path=mcnemar_root_path)
+  summary_pvalue(res_root=pvalue_root_path,
                  res_file_path='RQ3/30Fold-pvalue-setting2.csv',
                  setting = 2)
   reconstruct(summary_res_file,
@@ -270,8 +287,8 @@ if(T){
   summary_res_file <- 'RQ3/30Fold-pvalue_summary-setting1.csv'
   write(paste('scenario','comparison','indicator','statistic','ratio_rejectN0',sep=','),
         file=summary_res_file,append = F)
-  summary_mcnemar(root_path='result/differentNoise/s30F/pairedResult/')
-  summary_pvalue(res_root='result/differentNoise/30F/pairedResult/',
+  summary_mcnemar(root_path=mcnemar_root_path)
+  summary_pvalue(res_root=pvalue_root_path,
                  res_file_path='RQ3/30Fold-pvalue-setting1.csv',
                  setting = 1)
   reconstruct(summary_res_file,

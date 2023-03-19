@@ -3,7 +3,7 @@ setwd('D:/work/real-world-evaluation/')
 source('./r_script/generateExperimentBatch.R')
 
 learners = c(
-  'trees.HoeffdingAdaptiveTreeClassifLeaves'
+  'meta.LeveragingBag'
 )
 
 files <-
@@ -16,7 +16,7 @@ files <-
 seeds <- as.character(1:50)
 
 
-noises <- c('0','0.05','0.1')
+noises <- c('0.2','0.3')
 
 f_sampleFrequency = '1000'
 q_timeFrequency = '1000'
@@ -26,7 +26,7 @@ q_timeFrequency = '1000'
 
 validation = 'Bootstrap-Validation'
 
-script_file <- paste('experiment-all50seeds.sh',sep='')
+script_file <- paste('ideal-big-noise.sh',sep='')
 for(noise in noises){
   for(seed in seeds){
    # script_file <- paste('experiment-differentNoise-seed',seed,'.sh',sep='')
@@ -37,46 +37,50 @@ for(noise in noises){
         res_root <- paste('./r_script/result/differentNoise/',learner,'/','seed',seed,'-noise',noise,sep='')
         dir.create(res_root,recursive = T, showWarnings = F)
         
-        #PosNeg
         
-        PosWinowLengths <- c(7)
-        NegWinowLengths <- c(90)
-        evaluation_method <- 'EvaluatePrequentialDelayedCVPosNegWindow'
-        # script_file <- 'command-EvaluatePrequentialDelayedCVPosNegWindow.sh'
-        for(P_day in PosWinowLengths){
-          P <- P_day * seconds_in_a_day
+        if(F){
+          #PosNeg
+          PosWinowLengths <- c(7)
+          NegWinowLengths <- c(90)
+          evaluation_method <- 'EvaluatePrequentialDelayedCVPosNegWindow'
+          # script_file <- 'command-EvaluatePrequentialDelayedCVPosNegWindow.sh'
+          for(P_day in PosWinowLengths){
+            P <- P_day * seconds_in_a_day
+            for(N_day in NegWinowLengths){
+              N <- N_day * seconds_in_a_day
+              command <- combineCommandSimplePath(learner,seed,f_sampleFrequency,q_timeFrequency,project,P,N,evaluation_method,res_root,validation,noise)
+              sink(script_file,append = T)
+              cat(command)
+              cat("\n")
+              sink()
+              
+            }
+          }
+        }
+        if(F){
+          #Extension
+          evaluation_method <- 'EvaluatePrequentialDelayedCVExtension'
+          # script_file <- 'command-EvaluatePrequentialDelayedCVExtension.sh'
           for(N_day in NegWinowLengths){
             N <- N_day * seconds_in_a_day
-            command <- combineCommandSimplePath(learner,seed,f_sampleFrequency,q_timeFrequency,project,P,N,evaluation_method,res_root,validation,noise)
+            command <- combineCommandSimplePath(learner,seed,f_sampleFrequency,q_timeFrequency,project,N,N,evaluation_method,res_root,validation,noise)
             sink(script_file,append = T)
             cat(command)
             cat("\n")
             sink()
-            
           }
         }
-        
-        # #Extension
-        # evaluation_method <- 'EvaluatePrequentialDelayedCVExtension'
-        # # script_file <- 'command-EvaluatePrequentialDelayedCVExtension.sh'
-        # for(N_day in NegWinowLengths){
-        #   N <- N_day * seconds_in_a_day
-        #   command <- combineCommand(learner,seed,f_sampleFrequency,q_timeFrequency,project,N,N,evaluation_method,res_root,validation,noise)
-        #   sink(script_file,append = T)
-        #   cat(command)
-        #   cat("\n")
-        #   sink()
-        # }
-        # 
-        # #Ideal
-        # evaluation_method <- 'EvaluatePrequentialDelayedCVIdeal'
-        # # script_file <- 'command-EvaluatePrequentialDelayedCVIdeal.sh'
-        # command <- combineCommand(learner,seed,f_sampleFrequency,q_timeFrequency,project,-1,-1,evaluation_method,res_root,validation,noise)
-        # sink(script_file,append = T)
-        # cat(command)
-        # cat("\n")
-        # sink()
-        # 
+        if(T){
+          #Ideal
+          evaluation_method <- 'EvaluatePrequentialDelayedCVIdeal'
+          # script_file <- 'command-EvaluatePrequentialDelayedCVIdeal.sh'
+          command <- combineCommandSimplePath(learner,seed,f_sampleFrequency,q_timeFrequency,project,-1,-1,evaluation_method,res_root,validation,noise)
+          sink(script_file,append = T)
+          cat(command)
+          cat("\n")
+          sink()
+        }
+
       }
     }
   }
