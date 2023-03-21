@@ -2,17 +2,19 @@
 
 library(ScottKnottESD)
 library(dplyr)
-indicators <- c('Recall for class 1 (percent)',
-                             'Kappa Recall Temporal Statistic 1 (percent)',
-                             'Gmean for recall  (percent)',
-                             'Kappa Gmean Temporal Statistic  (percent)',
-                             'FPR for class 1 (percent)',
-                             'Kappa FPR Temporal Statistic 1 (percent)')
+indicators <- c(
+  'Recall for class 1 (percent)',
+  'Kappa Recall Temporal Statistic 1 (percent)',
+  'Gmean for recall  (percent)',
+  'Kappa Gmean Temporal Statistic  (percent)',
+  'FPR for class 1 (percent)',
+  'Kappa FPR Temporal Statistic 1 (percent)'
+)
 
 # indicator <- indicators[1]
 setwd('D:/work/real-world-evaluation/')
 root_path <- 'r_script/result/differentLearner-30Fold/'
-files <- list.files(root_path,pattern = 'dumpFile.csv$')
+files <- list.files(root_path, pattern = 'dumpFile.csv$')
 
 projects <- c()
 clfs <- c()
@@ -23,33 +25,33 @@ folds <- c()
 fadingfactors <- c()
 
 for (file in files) {
-  cat(file,'\n')
-  if(length(strsplit(file,'_')[[1]])==9){
-    project <- strsplit(file,'_')[[1]][2]
-    clf <- strsplit(file,'_')[[1]][3]
-    scenario <- strsplit(file,'_')[[1]][4]
-    seed <- strsplit(file,'_')[[1]][5]
-    validation <- strsplit(file,'_')[[1]][6]
-    fold <- strsplit(file,'_')[[1]][7]
-    fadingfactor <- strsplit(file,'_')[[1]][8]
-  }else{
-    project <- strsplit(file,'_')[[1]][2]
-    clf <- strsplit(file,'_')[[1]][3]
-    scenario <- strsplit(file,'_')[[1]][4]
-    pos <- strsplit(file,'_')[[1]][5]
-    neg <- strsplit(file,'_')[[1]][6]
-    seed <- strsplit(file,'_')[[1]][7]
-    validation <- strsplit(file,'_')[[1]][8]
-    fold <- strsplit(file,'_')[[1]][9]
-    fadingfactor <- strsplit(file,'_')[[1]][10]
+  cat(file, '\n')
+  if (length(strsplit(file, '_')[[1]]) == 9) {
+    project <- strsplit(file, '_')[[1]][2]
+    clf <- strsplit(file, '_')[[1]][3]
+    scenario <- strsplit(file, '_')[[1]][4]
+    seed <- strsplit(file, '_')[[1]][5]
+    validation <- strsplit(file, '_')[[1]][6]
+    fold <- strsplit(file, '_')[[1]][7]
+    fadingfactor <- strsplit(file, '_')[[1]][8]
+  } else{
+    project <- strsplit(file, '_')[[1]][2]
+    clf <- strsplit(file, '_')[[1]][3]
+    scenario <- strsplit(file, '_')[[1]][4]
+    pos <- strsplit(file, '_')[[1]][5]
+    neg <- strsplit(file, '_')[[1]][6]
+    seed <- strsplit(file, '_')[[1]][7]
+    validation <- strsplit(file, '_')[[1]][8]
+    fold <- strsplit(file, '_')[[1]][9]
+    fadingfactor <- strsplit(file, '_')[[1]][10]
   }
-  projects <- append(projects,project)
-  clfs <- append(clfs,clf)
-  scenarios <- append(scenarios,scenario)
-  seeds <- append(seeds,seed)
-  validations <- append(validations,validation)
-  folds <- append(folds,fold)
-  fadingfactors <- append(fadingfactors,fadingfactor)
+  projects <- append(projects, project)
+  clfs <- append(clfs, clf)
+  scenarios <- append(scenarios, scenario)
+  seeds <- append(seeds, seed)
+  validations <- append(validations, validation)
+  folds <- append(folds, fold)
+  fadingfactors <- append(fadingfactors, fadingfactor)
 }
 
 projects <- unique(projects)
@@ -63,48 +65,61 @@ fadingfactors <- unique(fadingfactors)
 scenario <- scenarios[1]
 
 for (scenario in scenarios) {
-  for(indicator in indicators){
+  first_indicator <- T
+  for (indicator in indicators) {
+    
     sk_res_first_flag <- T
     for (project in projects) {
-    
-  
-    first_flag <- T  
-    for (clf in clfs) {
-      clf_ <- paste('_',clf,'_',sep='')  
-      file <- list.files(root_path,pattern = glob2rx(paste('',project,clf_,scenario,'detail.csv',sep='*')))
-        cat(file,'\n')
-        df <- read.csv(file.path(root_path,file),check.names = F)
+      first_flag <- T
+      for (clf in clfs) {
+        clf_ <- paste('_', clf, '_', sep = '')
+        file <-
+          list.files(root_path, pattern = glob2rx(
+            paste('', project, clf_, scenario, 'detail.csv', sep = '*')
+          ))
+        cat(file, '\n')
+        df <- read.csv(file.path(root_path, file), check.names = F)
         
-        df <- df[c('learning evaluation instances on certain fold',indicator)]
+        df <-
+          df[c('learning evaluation instances on certain fold',
+               indicator)]
         
-        df.checkpoint <- df %>% group_by(`learning evaluation instances on certain fold`) %>% 
-          summarise(across(everything(), mean) ) %>% as.data.frame()
-        if(first_flag){
+        df.checkpoint <-
+          df %>% group_by(`learning evaluation instances on certain fold`) %>%
+          summarise(across(everything(), mean)) %>% as.data.frame()
+        if (first_flag) {
           first_flag <- F
-          res <- data.frame(clf = df.checkpoint[,indicator])
+          res <- data.frame(clf = df.checkpoint[, indicator])
           colnames(res) <- clf
-        }else{
-          res[,clf] <- df.checkpoint[,indicator]
+        } else{
+          res[, clf] <- df.checkpoint[, indicator]
         }
+      }
+      
+      sk <- sk_esd(res, version = 'np')
+      
+      
+      if (sk_res_first_flag) {
+        sk_res_first_flag <- F
+        sk_res <- as.data.frame(sk$groups)
+        colnames(sk_res) <- project
+      } else{
+        temp <- as.data.frame(sk$groups)
+        sk_res[row.names(temp), project] <- temp$`sk$groups`
+      }
     }
     
-    sk <- sk_esd(res, version='np')
-    
-    
-    if(sk_res_first_flag){
-      sk_res_first_flag <- F
-      sk_res <- as.data.frame(sk$groups)
-      colnames(sk_res) <- project
+    two_level_sk <- sk_esd(t(-sk_res),version = 'np')
+    two_level_sk_df <- as.data.frame(two_level_sk$groups)
+    colnames(two_level_sk_df) <- indicator
+    if(first_indicator){
+      first_indicator <- F
+      total_two_level_sk <- two_level_sk_df
     }else{
-      temp <- as.data.frame(sk$groups)
-      sk_res[row.names(temp),project] <- temp$`sk$groups`
-    }
+      total_two_level_sk[row.names(two_level_sk_df), indicator] <- two_level_sk_df[,indicator]
     }
   }
-}
-
-
-
-
-
-
+  sk_root <- 'r_script/learnerComparison/'
+  dir.create(sk_root,showWarnings = F)
+  write.csv(total_two_level_sk,file.path(sk_root,paste(scenario,folds,fadingfactors,'.csv',sep='_')))
+ }
