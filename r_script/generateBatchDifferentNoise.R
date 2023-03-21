@@ -20,7 +20,7 @@ noises <- c('0.2','0.3')
 
 f_sampleFrequency = '1000'
 q_timeFrequency = '1000'
-
+fold = '30'
 # f_sampleFrequency = '1'
 # q_timeFrequency = '1'
 
@@ -48,7 +48,7 @@ for(noise in noises){
             P <- P_day * seconds_in_a_day
             for(N_day in NegWinowLengths){
               N <- N_day * seconds_in_a_day
-              command <- combineCommandSimplePath(learner,seed,f_sampleFrequency,q_timeFrequency,project,P,N,evaluation_method,res_root,validation,noise)
+              command <- combineCommandSimplePath(learner,seed,f_sampleFrequency,q_timeFrequency,project,P,N,evaluation_method,res_root,validation,noise,fold)
               sink(script_file,append = T)
               cat(command)
               cat("\n")
@@ -63,7 +63,7 @@ for(noise in noises){
           # script_file <- 'command-EvaluatePrequentialDelayedCVExtension.sh'
           for(N_day in NegWinowLengths){
             N <- N_day * seconds_in_a_day
-            command <- combineCommandSimplePath(learner,seed,f_sampleFrequency,q_timeFrequency,project,N,N,evaluation_method,res_root,validation,noise)
+            command <- combineCommandSimplePath(learner,seed,f_sampleFrequency,q_timeFrequency,project,N,N,evaluation_method,res_root,validation,noise,fold)
             sink(script_file,append = T)
             cat(command)
             cat("\n")
@@ -74,7 +74,7 @@ for(noise in noises){
           #Ideal
           evaluation_method <- 'EvaluatePrequentialDelayedCVIdeal'
           # script_file <- 'command-EvaluatePrequentialDelayedCVIdeal.sh'
-          command <- combineCommandSimplePath(learner,seed,f_sampleFrequency,q_timeFrequency,project,-1,-1,evaluation_method,res_root,validation,noise)
+          command <- combineCommandSimplePath(learner,seed,f_sampleFrequency,q_timeFrequency,project,-1,-1,evaluation_method,res_root,validation,noise,fold)
           sink(script_file,append = T)
           cat(command)
           cat("\n")

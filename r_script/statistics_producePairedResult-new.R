@@ -7,9 +7,12 @@ library('dplyr')
 
 producePairedResult <- function(folder1,folder2,interval){
   cat(folder1,folder2,'\n')
+  posfix <- paste(fold,eva,postfix,sep='_')
+  pat = paste(scenario,fold,eva,postfix,sep='_')
   
-  files1 <- list.files(path = folder1,pattern = 'detail.csv$')
-  files2 <- list.files(path = folder2,pattern = 'detail.csv$')
+  files1 <- list.files(path = folder1,pattern = paste(posfix,'.csv$',sep=''))
+  files2 <- list.files(path = folder2,pattern = paste(posfix,'.csv$',sep=''))
+  
   files1 <- str_sort(files1)
   files2 <- str_sort(files2)
   
@@ -24,17 +27,17 @@ producePairedResult <- function(folder1,folder2,interval){
     system.time(
     for(indicator in indicators){
       #cat('indicator ',indicator,'\n')
-      for(fold in folds){
+      for(f in folds){
         #cat('fold ',fold,'\n') 
-        value1 = as.numeric(df1[as.numeric(df1$fold)==fold,indicator])
-        value2 = as.numeric(df2[as.numeric(df2$fold)==fold,indicator])
+        value1 = as.numeric(df1[as.numeric(df1$f)==f,indicator])
+        value2 = as.numeric(df2[as.numeric(df2$f)==f,indicator])
         min_len <- min(length(value1),length(value2))
         
         idx_sep <- seq(interval,length(value1),interval)
         counter = 1
         v1 <- value1[idx_sep]
         v2 <- value2[idx_sep]
-        sub_df <- data.frame(scenario=scenario,dataset=file,fold=fold,`#instances`=idx_sep,indicator=indicator,folder1=v1,folder2=v2,check.names=F)
+        sub_df <- data.frame(scenario=scenario,dataset=file,fold=f,`#instances`=idx_sep,indicator=indicator,folder1=v1,folder2=v2,check.names=F)
         colnames(sub_df)[6] = folder1
         colnames(sub_df)[7] = folder2
         if(first_flag){
@@ -49,7 +52,7 @@ producePairedResult <- function(folder1,folder2,interval){
     )
   }
   
-  pat = paste(scenario,fold,eva,postfix,sep='_')
+  
   res_file = paste('paired_performance','_',folder1,'_',folder2,'_',pat,'.csv',sep = '')
   dir.create("pairedResult",showWarnings = F)
   write.csv(total_res,file = file.path('pairedResult/',res_file))
@@ -60,8 +63,9 @@ producePairedResult <- function(folder1,folder2,interval){
 produceMcNemarResult <- function(folder1,folder2,interval=1000){
   pat = paste(scenario,fold,eva,postfix,sep='_')
   
-  files1 <- list.files(path = folder1,pattern = 'detail.csv$')
-  files2 <- list.files(path = folder2,pattern = 'detail.csv$')
+  posfix <- paste(fold,eva,postfix,sep='_')
+  files1 <- list.files(path = folder1,pattern = paste(posfix,'.csv$',sep=''))
+  files2 <- list.files(path = folder2,pattern = paste(posfix,'.csv$',sep=''))
   files1 <- str_sort(files1)
   files2 <- str_sort(files2)
   
@@ -107,7 +111,7 @@ produceMcNemarResult <- function(folder1,folder2,interval=1000){
 
 
 parallel_run <- function(example_element){
-
+  
   library("stringr")  
   folder1 <- example_element$folder1
   folder2 <- example_element$folder2
@@ -136,14 +140,14 @@ parallel_run2 <- function(example_element){
   if(mcnemar_test){
    produceMcNemarResult(folder1,folder2,interval)
     produceMcNemarResult(folder1,folder3,interval)
-    produceMcNemarResult(folder1,folder4,interval)
-    produceMcNemarResult(folder1,folder5,interval)
+    #produceMcNemarResult(folder1,folder4,interval)
+    #produceMcNemarResult(folder1,folder5,interval)
 
   }else{
     producePairedResult(folder1,folder2,interval)
     producePairedResult(folder1,folder3,interval)
-    producePairedResult(folder1,folder4,interval)
-    producePairedResult(folder1,folder5,interval)
+    #producePairedResult(folder1,folder4,interval)
+    #producePairedResult(folder1,folder5,interval)
   }
 }
 
@@ -230,11 +234,11 @@ Type2_error <- function(df_folders,maxPair=50,mcnemar_test=F){
 
 # scenarios = c('DelayedCVIdeal','DelayedCVExtension','DelayedCVPosNegWindow(7-90)')
 scenarios = c('DelayedCVIdeal')
-fold = '5Fold'
+# fold = '10Fold'
 fold = '30Fold'
 eva = 'FF0.99'
 postfix = "detail"
-folds = 0:4
+# folds = 0:9
 folds = 0:29
 indicators = c('Recall for class 1 (percent)',
                'Kappa Recall Temporal Statistic 1 (percent)',
@@ -274,7 +278,7 @@ batchFolder <- function(seeds){
 
 simple_path <- './result/differentNoise/LB-ideal-s/'
 all_path <- './result/differentNoise/LB-ideal/'
-if(F){
+if(T){
   for(scenario in scenarios){
     seeds <- 1:5
     interval = 1000
@@ -286,7 +290,7 @@ if(F){
   }
 }
 
-if(F){
+if(T){
   for(scenario in scenarios){
     seeds <- 1:10
     interval = 1000

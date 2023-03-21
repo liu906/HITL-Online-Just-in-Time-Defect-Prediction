@@ -17,9 +17,9 @@ files <-
 seeds <- c('1')
 noises <- c('0')
 
-f_sampleFrequency = '1'
-q_timeFrequency = '1'
-
+f_sampleFrequency = '50'
+q_timeFrequency = '50'
+fold <- '30'
 validation = 'Bootstrap-Validation'
 script_file <- paste('CVExtension.sh',sep='')
 for(noise in noises){
@@ -31,46 +31,50 @@ for(noise in noises){
         
         res_root <- paste('./r_script/result/differentEvaluationProcudure/',learner,'/','seed',seed,'-noise',noise,sep='')
         dir.create(res_root,recursive = T, showWarnings = F)
-# 
-#         #PosNeg
-#         PosWinowLengths <- c(1,3,7,15,30,60)
-#         NegWinowLengths <- c(15,90)
-#         evaluation_method <- 'EvaluatePrequentialDelayedCVPosNegWindow'
-#         # script_file <- 'command-EvaluatePrequentialDelayedCVPosNegWindow.sh'
-#         for(P_day in PosWinowLengths){
-#           P <- P_day * seconds_in_a_day
-#           for(N_day in NegWinowLengths){
-#             N <- N_day * seconds_in_a_day
-#             command <- combineCommand(learner,seed,f_sampleFrequency,q_timeFrequency,project,P,N,evaluation_method,res_root,validation,noise)
-#             sink(script_file,append = T)
-#             cat(command)
-#             cat("\n")
-#             sink()
-#             
-#           }
-#         }
-#         
-        #Extension
-        evaluation_method <- 'EvaluatePrequentialDelayedCVExtension'
-        # script_file <- 'command-EvaluatePrequentialDelayedCVExtension.sh'
-        for(N_day in NegWinowLengths){
-          N <- N_day * seconds_in_a_day
-          command <- combineCommandSimplePath(learner,seed,f_sampleFrequency,q_timeFrequency,project,N,N,evaluation_method,res_root,validation,noise)
+        
+        if(T){
+          #PosNeg
+          PosWinowLengths <- c(1,3,7,15,30,60)
+          NegWinowLengths <- c(15,90)
+          evaluation_method <- 'EvaluatePrequentialDelayedCVPosNegWindow'
+          # script_file <- 'command-EvaluatePrequentialDelayedCVPosNegWindow.sh'
+          for(P_day in PosWinowLengths){
+            P <- P_day * seconds_in_a_day
+            for(N_day in NegWinowLengths){
+              N <- N_day * seconds_in_a_day
+              command <- combineCommandSimplePath(learner,seed,f_sampleFrequency,q_timeFrequency,project,P,N,evaluation_method,res_root,validation,noise,fold)
+              sink(script_file,append = T)
+              cat(command)
+              cat("\n")
+              sink()
+              
+            }
+          }
+          
+        }
+        if(T){
+          #Extension
+          evaluation_method <- 'EvaluatePrequentialDelayedCVExtension'
+          # script_file <- 'command-EvaluatePrequentialDelayedCVExtension.sh'
+          for(N_day in NegWinowLengths){
+            N <- N_day * seconds_in_a_day
+            command <- combineCommandSimplePath(learner,seed,f_sampleFrequency,q_timeFrequency,project,N,N,evaluation_method,res_root,validation,noise,fold)
+            sink(script_file,append = T)
+            cat(command)
+            cat("\n")
+            sink()
+          }
+        }
+        if(T){
+          #Ideal
+          evaluation_method <- 'EvaluatePrequentialDelayedCVIdeal'
+          # script_file <- 'command-EvaluatePrequentialDelayedCVIdeal.sh'
+          command <- combineCommandSimplePath(learner,seed,f_sampleFrequency,q_timeFrequency,project,-1,-1,evaluation_method,res_root,validation,noise,fold)
           sink(script_file,append = T)
           cat(command)
           cat("\n")
           sink()
         }
-        
-        # #Ideal
-        # evaluation_method <- 'EvaluatePrequentialDelayedCVIdeal'
-        # # script_file <- 'command-EvaluatePrequentialDelayedCVIdeal.sh'
-        # command <- combineCommand(learner,seed,f_sampleFrequency,q_timeFrequency,project,-1,-1,evaluation_method,res_root,validation,noise)
-        # sink(script_file,append = T)
-        # cat(command)
-        # cat("\n")
-        # sink()
-        # 
       }
     }
   }
