@@ -3,7 +3,7 @@ setwd('D:/work/real-world-evaluation/')
 source('./r_script/generateExperimentBatch.R')
 
 learners = c(
-  'meta.LeveragingBag'
+  'trees.HoeffdingTree'
 )
 
 files <-
@@ -16,7 +16,7 @@ files <-
 seeds <- as.character(1:50)
 
 
-noises <- c('0.2','0.3')
+noises <- c('0')
 
 f_sampleFrequency = '1000'
 q_timeFrequency = '1000'
@@ -26,7 +26,7 @@ fold = '30'
 
 validation = 'Bootstrap-Validation'
 
-script_file <- paste('ideal-big-noise.sh',sep='')
+script_file <- paste('HT-noise.sh',sep='')
 for(noise in noises){
   for(seed in seeds){
    # script_file <- paste('experiment-differentNoise-seed',seed,'.sh',sep='')

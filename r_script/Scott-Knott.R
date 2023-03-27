@@ -67,9 +67,10 @@ scenario <- scenarios[1]
 for (scenario in scenarios) {
   first_indicator <- T
   for (indicator in indicators) {
-    
+    #indicator <- indicators[5]
     sk_res_first_flag <- T
     for (project in projects) {
+      #project <- projects[2]
       first_flag <- T
       for (clf in clfs) {
         clf_ <- paste('_', clf, '_', sep = '')
@@ -77,46 +78,57 @@ for (scenario in scenarios) {
           list.files(root_path, pattern = glob2rx(
             paste('', project, clf_, scenario, 'detail.csv', sep = '*')
           ))
-        cat(file, '\n')
+        # cat(file, '\n')
         df <- read.csv(file.path(root_path, file), check.names = F)
         
         df <-
           df[c('learning evaluation instances on certain fold',
                indicator)]
         
+        
+
+        
         df.checkpoint <-
           df %>% group_by(`learning evaluation instances on certain fold`) %>%
           summarise(across(everything(), mean)) %>% as.data.frame()
+        if(grepl('FPR', indicator, fixed = TRUE)){
+          df.checkpoint[,indicator] = -df.checkpoint[,indicator]
+        }
+        
+        
+        
+        
         if (first_flag) {
           first_flag <- F
           res <- data.frame(clf = df.checkpoint[, indicator])
           colnames(res) <- clf
         } else{
+          df.checkpoint <- df.checkpoint[1:nrow(res),]
           res[, clf] <- df.checkpoint[, indicator]
         }
       }
       
       sk <- sk_esd(res, version = 'np')
-      
-      
       if (sk_res_first_flag) {
         sk_res_first_flag <- F
         sk_res <- as.data.frame(sk$groups)
         colnames(sk_res) <- project
       } else{
         temp <- as.data.frame(sk$groups)
+        # cat(row.names(temp),'\n')
         sk_res[row.names(temp), project] <- temp$`sk$groups`
       }
     }
     
     two_level_sk <- sk_esd(t(-sk_res),version = 'np')
     two_level_sk_df <- as.data.frame(two_level_sk$groups)
+    cat(row.names(two_level_sk_df),'\n')
     colnames(two_level_sk_df) <- indicator
     if(first_indicator){
       first_indicator <- F
       total_two_level_sk <- two_level_sk_df
     }else{
-      total_two_level_sk[row.names(two_level_sk_df), indicator] <- two_level_sk_df[,indicator]
+      total_two_level_sk[row.names(two_level_sk_df), indicator] <- two_level_sk_df[row.names(two_level_sk_df),indicator]
     }
   }
   sk_root <- 'r_script/learnerComparison/'

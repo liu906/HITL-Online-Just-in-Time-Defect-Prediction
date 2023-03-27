@@ -3,7 +3,7 @@ setwd('D:/work/real-world-evaluation/')
 source('./r_script/generateExperimentBatch.R')
 getwd()
 learners = c(
-  'trees.HoeffdingAdaptiveTreeClassifLeaves'
+  'trees.HoeffdingTree'
 )
 
 
@@ -17,11 +17,11 @@ files <-
 seeds <- c('1')
 noises <- c('0')
 
-f_sampleFrequency = '50'
-q_timeFrequency = '50'
+f_sampleFrequency = '30'
+q_timeFrequency = '30'
 fold <- '30'
 validation = 'Bootstrap-Validation'
-script_file <- paste('CVExtension.sh',sep='')
+script_file <- paste('rq3.sh',sep='')
 for(noise in noises){
   for(seed in seeds){
     
