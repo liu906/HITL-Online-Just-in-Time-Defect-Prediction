@@ -18,7 +18,7 @@ indicators = c('[avg] Recall for class 1 (percent)',
                '[avg] FPR for class 1 (percent)')
 
 
-res_root <- "D:/work/real-world-evaluation/r_script/result/differentEvaluationProcudure/trees.HoeffdingTree/seed1-noise0/dump/"    
+res_root <- "D:/work/real-world-evaluation/r_script/result/differentEvaluationProcudure/trees.HoeffdingTree/seed1-noise0/dumpFile/"    
 files <- list.files(res_root,pattern = 'csv$')
 dataset_path <-'D:/work/real-world-evaluation/commit_guru_dataset/cut2years/key_timestamp/'
 projects <- c()
@@ -37,35 +37,23 @@ for(project in projects){
   key_timestamp_df <- read.csv(file.path(dataset_path,key_timestamp_file))
   project.ideal.file <- project.files[grep('Ideal',project.files)]
   project.estimate.files <- project.files[!grepl('Ideal',project.files)]
-  
+  first_estimate <- T
   for(project.estimate.file in project.estimate.files){
     df.ideal <- read.csv(file.path(res_root,project.ideal.file),check.names = F)
     df.estimate <- read.csv(file.path(res_root,project.estimate.file),check.names = F)
-    
-    
     
     df.estimate.idxs <- as.integer(nrow(df.estimate)*percentages) 
     df.estimate$`learning evaluation instances on certain fold`
     df.ideal.idxs <- as.integer(nrow(df.ideal)*percentages)  
     
-    # if(detail){
-    #   # 按照 col1 列的取值将数据框分割为多个子数据框
-    #   df_list <- split(df.ideal,df.ideal$fold)
-    #   
-    #   # 对每个子数据框进行操作，取出 col2 列
-    #   col2_list <- lapply(df_list, function(x) select(x, indicator))
-    #   unique(df.ideal$`current timestamp`)
-    #   nrow(col2_list$`27`)
-    #   # 将所有子数据框的 col2 列合并为一个新的数据框
-    #   new_df <- bind_cols(col2_list)
-    # }
-    
     for(indicator in indicators){
       validity <- compute_validity_metric(df.ideal[df.ideal.idxs,indicator],df.estimate[df.estimate.idxs,indicator])
-      pvalue <- wilcox.test(df.ideal[df.ideal.idxs,indicator],df.estimate[df.estimate.idxs,indicator],paired = T)$p.value
-      cd <- cohen.d(df.ideal[df.ideal.idxs,indicator],df.estimate[df.estimate.idxs,indicator],paired = T)
-      c(pvalue,cd$estimate,cd$magnitude)
+      ideal_validity <- compute_validity_metric(df.ideal[df.ideal.idxs,indicator],df.ideal[df.ideal.idxs,indicator])
+      #pvalue <- wilcox.test(df.ideal[df.ideal.idxs,indicator],df.estimate[df.estimate.idxs,indicator],paired = T)$p.value
+      #cd <- cohen.d(df.ideal[df.ideal.idxs,indicator],df.estimate[df.estimate.idxs,indicator],paired = T)
+      #c(pvalue,cd$estimate,cd$magnitude)
       temp <- c(project,project.ideal.file,project.estimate.file,substr(project.estimate.file,nchar(project)+2,nchar(project.estimate.file)),indicator,validity)
+      
       
       if(first_flag){
         total_result <- data.frame(matrix(nrow=0,ncol = length(temp)))
@@ -75,12 +63,18 @@ for(project in projects){
       }else{
         total_result[nrow(total_result)+1,] <- temp
       }
+      if(first_estimate){
+        total_result[nrow(total_result)+1,] <- c(project,project.ideal.file,project.ideal.file,substr(project.ideal.file,nchar(project)+2,nchar(project.ideal.file)),indicator,ideal_validity)
+      }
     }
+    first_estimate <- F
   }
 }
 
-sel <- c("PosNegWindow_3_90.csv", "PosNegWindow_15_90.csv", "PosNegWindow_30_90.csv", "PosNegWindow_7_90.csv", "Extension_90_90.csv")
+sel <- c("PosNegWindow_3_90.csv", "PosNegWindow_15_90.csv", "PosNegWindow_30_90.csv", "PosNegWindow_7_90.csv", "Extension_90_90.csv","Ideal.csv")
 total_result <- total_result[total_result$estimate_scenario %in% sel,]
+
+# project=projects,Ideal='Ideal',indicator = unique(total_result$indicator)
 
 write.csv(total_result,"D:/work/real-world-evaluation/r_script/RQ3/validity_metric.csv",row.names = F)
 
@@ -100,18 +94,21 @@ for(percentage in percentages){
     
     new_df <- bind_cols(col2_list)
     
-    colnames(new_df) <- unique(sub_total_result$estimate_scenario)
+    
+    colnames(new_df) <- names(col2_list)
     df_numeric <- as.data.frame(apply(new_df, 2, as.numeric))
     df_numeric[df_numeric == -Inf] <- 0
-    if(grepl('FPR', indicator, fixed = TRUE)){
-      df_numeric = -df_numeric
-    }
+    # if(grepl('FPR', indicator, fixed = TRUE)){
+    #   df_numeric = -df_numeric
+    # }
     sk_res <- sk_esd(df_numeric, version = 'np')
     diff <- checkDifference(sk_res$groups, df_numeric)
-    effect_size <- diff[diff$j=="PosNegWindow_7_90.csv",]
+    effect_size_i <- diff[diff$i=="Ideal.csv",]
+    effect_size_j <- diff[diff$j=="Ideal.csv",]
     sk_res <- as.data.frame(sk_res$groups)
     colnames(sk_res) <- indicator
-    sk_res[effect_size$i,paste(indicator,'mag',sep = '-')] <- effect_size$mag
+    sk_res[effect_size_j$i,paste(indicator,'mag',sep = '-')] <- effect_size_j$mag
+    sk_res[effect_size_i$j,paste(indicator,'mag',sep = '-')] <- effect_size_i$mag
     if(first_flag){
       first_flag <- F
       total_sk_res <- sk_res
@@ -132,4 +129,4 @@ for(percentage in percentages){
 
 res 
 
-write.csv(res,"D:/work/real-world-evaluation/r_script/RQ3/validity_metric_skESD.csv",row.names = T)
+write.csv(res[res$perc %in% c(0.1,0.5,1),],"D:/work/real-world-evaluation/r_script/RQ3/validity_metric_skESD.csv",row.names = T)

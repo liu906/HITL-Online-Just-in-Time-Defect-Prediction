@@ -62,7 +62,7 @@ validations <- unique(validations)
 folds <- unique(folds)
 fadingfactors <- unique(fadingfactors)
 
-scenario <- scenarios[1]
+
 
 for (scenario in scenarios) {
   first_indicator <- T

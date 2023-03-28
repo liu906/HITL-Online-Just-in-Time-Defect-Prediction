@@ -21,7 +21,7 @@ f_sampleFrequency = '30'
 q_timeFrequency = '30'
 fold <- '30'
 validation = 'Bootstrap-Validation'
-script_file <- paste('rq3.sh',sep='')
+script_file <- paste('auto(90,90).sh',sep='')
 for(noise in noises){
   for(seed in seeds){
     
@@ -34,8 +34,10 @@ for(noise in noises){
         
         if(T){
           #PosNeg
-          PosWinowLengths <- c(1,3,7,15,30,60)
-          NegWinowLengths <- c(15,90)
+          #PosWinowLengths <- c(1,3,7,15,30,60)
+          PosWinowLengths <- c(90)
+          # NegWinowLengths <- c(15,90)
+          NegWinowLengths <- c(90)
           evaluation_method <- 'EvaluatePrequentialDelayedCVPosNegWindow'
           # script_file <- 'command-EvaluatePrequentialDelayedCVPosNegWindow.sh'
           for(P_day in PosWinowLengths){
@@ -52,7 +54,7 @@ for(noise in noises){
           }
           
         }
-        if(T){
+        if(F){
           #Extension
           evaluation_method <- 'EvaluatePrequentialDelayedCVExtension'
           # script_file <- 'command-EvaluatePrequentialDelayedCVExtension.sh'
@@ -65,7 +67,7 @@ for(noise in noises){
             sink()
           }
         }
-        if(T){
+        if(F){
           #Ideal
           evaluation_method <- 'EvaluatePrequentialDelayedCVIdeal'
           # script_file <- 'command-EvaluatePrequentialDelayedCVIdeal.sh'
