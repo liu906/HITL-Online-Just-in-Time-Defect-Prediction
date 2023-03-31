@@ -3,11 +3,17 @@ setwd('D:/work/real-world-evaluation/')
 source('./r_script/generateExperimentBatch.R')
 res_root <- './r_script/result/differentResampling/'
 learners = c(
-  #'trees.HoeffdingTree',
-  '"(meta.imbalanced.OnlineSMOTEBagging" -l trees.HoeffdingTree -s 1 -i "2)"',
-  '"(meta.imbalanced.OnlineSMOTEBagging" -l trees.HoeffdingTree -s 10 -i "2)"',
+  'trees.HoeffdingTree',
+  #'"(meta.imbalanced.OnlineSMOTEBagging" -l trees.HoeffdingTree -s 1 -i "2)"',
+  #' #'"(meta.imbalanced.OnlineSMOTEBagging" -l trees.HoeffdingTree -s 10 -i "2)"',
   '"(meta.imbalanced.OnlineUnderOverBagging" -l trees.HoeffdingTree -s 10 -i "2)"',
-  '"(meta.imbalanced.OnlineUnderOverBagging" -l trees.HoeffdingTree -s 1 -i "2)"'
+  '"(meta.imbalanced.OnlineUnderOverBagging" -l trees.HoeffdingTree -s 1 -i "2)"',
+  '"(meta.imbalanced.OnlineRUSBoost" -l trees.HoeffdingTree -s 1 -i "2)"',
+  '"(meta.imbalanced.OnlineRUSBoost" -l trees.HoeffdingTree -s 10 -i "2)"',
+  '"(meta.imbalanced.OnlineUnderOverBagging" -l trees.HoeffdingTree -s 10 -i "1)"',
+  '"(meta.imbalanced.OnlineUnderOverBagging" -l trees.HoeffdingTree -s 1 -i "1)"',
+  '"(meta.imbalanced.OnlineRUSBoost" -l trees.HoeffdingTree -s 1 -i "1)"',
+  '"(meta.imbalanced.OnlineRUSBoost" -l trees.HoeffdingTree -s 10 -i "1)"'
 )
 
 
@@ -17,11 +23,11 @@ files <-
              full.names = T)
 
 seed = '1'
-f_sampleFrequency = '1000'
-q_timeFrequency = '1000'
+f_sampleFrequency = '100'
+q_timeFrequency = '100'
 fold = '30'
 
-script_file <- '30Fold-differentResampling.sh'
+script_file <- 'resample.sh'
 
 for (i in 1:length(files)) {
   project <- files[i]

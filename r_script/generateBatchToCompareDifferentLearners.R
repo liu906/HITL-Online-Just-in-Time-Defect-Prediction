@@ -1,7 +1,7 @@
 # setwd('/media/lxt/TOSHIBA EXT/moa/')
 setwd('D:/work/real-world-evaluation/')
 source('./r_script/generateExperimentBatch.R')
-res_root <- './r_script/result/differentLearner-30Fold/'
+res_root <- './r_script/result/diffLearner-100/'
 learners = c(
   'trees.HoeffdingTree',
   'trees.HoeffdingAdaptiveTree',
@@ -38,11 +38,11 @@ files <-
              full.names = T)
 
 seed = '1'
-f_sampleFrequency = '1000'
-q_timeFrequency = '1000'
+f_sampleFrequency = '100'
+q_timeFrequency = '100'
 fold = '30'
 
-script_file <- '30Fold-differentLearner.sh'
+script_file <- 'differentLearner-100.sh'
 
 for (i in 1:length(files)) {
   project <- files[i]
@@ -68,7 +68,7 @@ for (i in 1:length(files)) {
     }
     
     
-    if(T){
+    if(F){
       #Extension
       evaluation_method <- 'EvaluatePrequentialDelayedCVExtension'
       for(N_day in NegWinowLengths){
@@ -83,7 +83,7 @@ for (i in 1:length(files)) {
 
     
     
-    if(T){
+    if(F){
       #Ideal
       evaluation_method <- 'EvaluatePrequentialDelayedCVIdeal'
       command <- combineCommandSimplePath(learner,seed,f_sampleFrequency,q_timeFrequency,project,-1,-1,evaluation_method,res_root,fold=fold)
