@@ -29,6 +29,10 @@ learners = c(
   # '(meta.imbalanced.OnlineUnderOverBagging -l (meta.AdaptiveRandomForest -x (ADWINChangeDetector -a 0.001) -p (ADWINChangeDetector -a 0.01)))'
 )
 
+learners = c(
+  'functions.MajorityClass',
+  'functions.NoChange'
+)
 
 
 
@@ -42,7 +46,7 @@ f_sampleFrequency = '100'
 q_timeFrequency = '100'
 fold = '30'
 
-script_file <- 'differentLearner-100.sh'
+script_file <- 'differentLearner-100-addBaseline.sh'
 
 for (i in 1:length(files)) {
   project <- files[i]

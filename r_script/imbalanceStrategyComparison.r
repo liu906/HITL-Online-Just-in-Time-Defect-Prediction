@@ -2,7 +2,7 @@ setwd('/media/lxt/TOSHIBA EXT/moa/')
 list.dirs('experimentResult/', recursive = F)
 settings <- c(
   # 'CSMOTE', CSMOTE changes #instance of result, so it is droped
-  'HoeffdingAdaptiveTree',
+  #'HoeffdingAdaptiveTree',
   'OnlineAdaBoost',
   'OnlineAdaC2',
   'OnlineRUSBoost',

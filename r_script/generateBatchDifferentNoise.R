@@ -1,9 +1,11 @@
 setwd('D:/work/real-world-evaluation/')
 # setwd('/media/lxt/TOSHIBA EXT/moa/')
 source('./r_script/generateExperimentBatch.R')
-
+#install.packages("foreign")
+library(foreign)
 learners = c(
-  'trees.HoeffdingTree'
+  #'trees.HoeffdingTree'
+  'meta.LeveragingBag'
 )
 
 files <-
@@ -11,27 +13,35 @@ files <-
              pattern = 'arff$',
              full.names = T)
 
-
-# seeds <- c('1','2','3','4','5','6','7','8','9','10','11')
 seeds <- as.character(1:50)
 
 
-noises <- c('0')
+noises <- c('0','0.05','0.1')
 
 f_sampleFrequency = '1000'
 q_timeFrequency = '1000'
-fold = '30'
+# fold = '30'
+fold = '10'
 # f_sampleFrequency = '1'
 # q_timeFrequency = '1'
 
 validation = 'Bootstrap-Validation'
-
-script_file <- paste('HT-noise.sh',sep='')
+softInvertal <- T
+#script_file <- paste('HT-noise.sh',sep='')
+script_file <- paste('statisticalTest_softInvertal-10Fold-30.sh',sep='')
+interval <- 30 / 0.632
 for(noise in noises){
   for(seed in seeds){
    # script_file <- paste('experiment-differentNoise-seed',seed,'.sh',sep='')
     for (i in 1:length(files)) {
-      project <- files[i]
+      if(softInvertal){
+        project <- files[i]
+        data <- read.arff(project)
+        fre <- ceiling(nrow(data)/interval)
+        f_sampleFrequency <- as.character(fre)
+        q_timeFrequency <- as.character(fre)
+      }
+      
       for (learner in learners) {
         
         res_root <- paste('./r_script/result/differentNoise/',learner,'/','seed',seed,'-noise',noise,sep='')

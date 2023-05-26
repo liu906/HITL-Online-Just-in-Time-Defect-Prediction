@@ -15,19 +15,19 @@ clfs <- unique(clfs)
 
 #scenarios <- c("PosNegWindow_7_90.csv","Extension_90_90.csv","Ideal.csv")
 scenarios <- c("PosNegWindow_7_90")
-indicators = c('[avg] Recall for class 1 (percent)',
-               '[avg] Kappa Recall Temporal Statistic 1 (percent)',
-               '[avg] Kappa Recall M Statistic 1 (percent)',
-               '[avg] Gmean for recall  (percent)',
-               '[avg] Kappa Gmean Temporal Statistic  (percent)',
-               '[avg] Kappa Gmean M Statistic  (percent)',
-               '[avg] FPR for class 1 (percent)',
-               '[avg] Kappa FPR Temporal Statistic 1 (percent)',
-               '[avg] Kappa FPR M Statistic 1 (percent)')
-
 # indicators = c('[avg] Recall for class 1 (percent)',
+#                '[avg] Kappa Recall Temporal Statistic 1 (percent)',
+#                '[avg] Kappa Recall M Statistic 1 (percent)',
 #                '[avg] Gmean for recall  (percent)',
-#                '[avg] FPR for class 1 (percent)')
+#                '[avg] Kappa Gmean Temporal Statistic  (percent)',
+#                '[avg] Kappa Gmean M Statistic  (percent)',
+#                '[avg] FPR for class 1 (percent)',
+#                '[avg] Kappa FPR Temporal Statistic 1 (percent)',
+#                '[avg] Kappa FPR M Statistic 1 (percent)')
+
+indicators = c('[avg] Recall for class 1 (percent)',
+               '[avg] Gmean for recall  (percent)',
+               '[avg] FPR for class 1 (percent)')
 percentages <- c(0.1,0.5,1)
 
 #resamples <- c('OnlineUnderOverBagging','OnlineRUSBoost')
@@ -72,12 +72,7 @@ for (scenario in scenarios) {
   data_path <- 'D:/work/real-world-evaluation/r_script/baselineComparison/'
   dir.create(data_path,showWarnings = F)
   
-  
-  
-  
-  
   # 根据group_col进行分组，计算median_col的中位数
-  
   write.csv(total_res,file.path(data_path,'summaryForPlot.csv'),row.names = F)
 }
 
@@ -113,10 +108,6 @@ for (scenario in scenarios) {
   }
   data_path <- 'D:/work/real-world-evaluation/r_script/baselineComparison/'
   dir.create(data_path,showWarnings = F)
-  
-  
-  
-  
   
   result <- total_res %>%
     group_by(`%ts`,classifier) %>%

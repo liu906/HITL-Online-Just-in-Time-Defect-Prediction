@@ -1,5 +1,3 @@
-
-
 library("parallel")
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source('mcnemar.R')
@@ -32,8 +30,10 @@ producePairedResult <- function(folder1,folder2,interval){
         value1 = as.numeric(df1[as.numeric(df1$f)==f,indicator])
         value2 = as.numeric(df2[as.numeric(df2$f)==f,indicator])
         min_len <- min(length(value1),length(value2))
-        
-        idx_sep <- seq(interval,length(value1),interval)
+        # TODO: change the definition of interval
+        #idx_sep <- seq(interval,length(value1),interval)
+        idx_sep <- seq(interval,min_len,interval)
+        #idx_sep <- seq(1,length(value1),length(value1)/interval)
         counter = 1
         v1 <- value1[idx_sep]
         v2 <- value2[idx_sep]
@@ -60,7 +60,7 @@ producePairedResult <- function(folder1,folder2,interval){
 
 
 
-produceMcNemarResult <- function(folder1,folder2,interval=1000){
+produceMcNemarResult <- function(folder1,folder2,interval){
   pat = paste(scenario,fold,eva,postfix,sep='_')
   
   posfix <- paste(fold,eva,postfix,sep='_')
@@ -86,10 +86,13 @@ produceMcNemarResult <- function(folder1,folder2,interval=1000){
       
       value1 = df1[as.numeric(df1$fold)==fold,]
       value2 = df2[as.numeric(df2$fold)==fold,]
-      
+      # TODO change interval
       list_m <- McNemar(value1,value2,interval)
+      # done
+      
       sub_df <- data.frame(scenario=scenario,dataset=file,fold=fold,
-                   `#instances`=interval*(1:length(list_m)),
+                   #`#instances`=(floor(length(list_m)/interval))*(1:length(list_m)),
+                   `#instances`=1:length(list_m),
                    `folder1`=folder1,
                    `folder2`=folder2,
                    mcnemar=list_m,
@@ -234,12 +237,18 @@ Type2_error <- function(df_folders,maxPair=50,mcnemar_test=F){
 
 # scenarios = c('DelayedCVIdeal','DelayedCVExtension','DelayedCVPosNegWindow(7-90)')
 scenarios = c('DelayedCVIdeal')
-# fold = '10Fold'
-fold = '30Fold'
+ 
+
 eva = 'FF0.99'
 postfix = "detail"
-# folds = 0:9
-folds = 0:29
+ 
+if(T){
+  fold = '10Fold'
+  folds = 0:9
+}else{
+  fold = '30Fold'
+  folds = 0:29
+}
 indicators = c('Recall for class 1 (percent)',
                'Kappa Recall Temporal Statistic 1 (percent)',
                'Gmean for recall  (percent)',
@@ -275,13 +284,20 @@ batchFolder <- function(seeds){
   return(data.frame(folders0,folders005,folders01,folders02,folders03))
 }
 
+if(F){
+  simple_path <- './result/differentNoise/LB-ideal-s/'
+  all_path <- './result/differentNoise/LB-ideal/'
+}else{
+  simple_path <- './result/differentNoise/LB-ideal-s/'
+  all_path <- './result/differentNoise/meta.LeveragingBag-10runs/'
+}
 
-simple_path <- './result/differentNoise/LB-ideal-s/'
-all_path <- './result/differentNoise/LB-ideal/'
 if(T){
   for(scenario in scenarios){
     seeds <- 1:5
-    interval = 1000
+    # TODO: change the definition of interval
+    # interval is expected number of check points new
+    interval = 10
     df_folders <- batchFolder(seeds)
     setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
     setwd(simple_path)
@@ -293,7 +309,8 @@ if(T){
 if(T){
   for(scenario in scenarios){
     seeds <- 1:10
-    interval = 1000
+    #interval = 1000
+    interval = 10
     df_folders <- batchFolder(seeds)
     setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
     setwd(simple_path)
@@ -301,14 +318,14 @@ if(T){
   }
 }
 
-if(T){
+if(F){
   for(scenario in scenarios){
     seeds <- 1:50
     interval <- 1
     df_folders <- batchFolder(seeds)
     setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
     setwd(all_path)
-    
+    getwd()
     Type1_error(df_folders,maxPair=50,mcnemar_test = F)
     Type2_error(df_folders,maxPair=50,mcnemar_test = F)
   }

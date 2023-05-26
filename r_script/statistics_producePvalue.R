@@ -26,7 +26,7 @@ producePvalue <- function(file_path,res_file_path,setting,conf_level){
             if(nrow(sub_df_)!=length(folds)){
               next
             }
-            cat('mode3 #sample ',length(sub_df_[,6]),'\n')
+            cat('mode3 #sample ',indicator,' ',dataset,' ',length(sub_df_[,6]), ' ',length(sub_df_[,7]),' ',file_path,'\n')
             pvalue <- wilcox.test(sub_df_[,6],sub_df_[,7],paired = T,conf.level = conf_level)$p.value
             return_df[nrow(return_df)+1,] <- c(scenario,dataset,instance,indicator,colnames(sub_df)[6],colnames(sub_df)[7],'wilcox',pvalue)
             pvalue_str <- signtest(sub_df_[,6] - sub_df_[,7], m=0, conf.level=conf_level, exact=FALSE)
@@ -43,7 +43,7 @@ producePvalue <- function(file_path,res_file_path,setting,conf_level){
             }
             idx = idx - 1
           }
-          cat('mode2 #sample ',length(sub_df_[,6]),'\n')
+          cat('mode3 #sample ',indicator,' ',dataset,' ',length(sub_df_[,6]), ' ',length(sub_df_[,7]),' ',file_path,'\n')
           pvalue <- wilcox.test(sub_df_[,6],sub_df_[,7],paired = T,conf.level = conf_level)$p.value
           return_df[nrow(return_df)+1,] <- c(scenario,dataset,instances[idx],indicator,colnames(sub_df)[6],colnames(sub_df)[7],'wilcox',pvalue)
           pvalue_str <- signtest(sub_df_[,6] - sub_df_[,7], m=0, conf.level=conf_level, exact=FALSE)
@@ -71,7 +71,6 @@ producePvalue <- function(file_path,res_file_path,setting,conf_level){
 }
   
 parallel_run <- function(df){
-  
   library(nonpar)
   file_path <- df$file_path
   cat('file_path: ',file_path,'\n')
@@ -103,7 +102,8 @@ summary_pvalue <- function(res_root,res_file_path,setting){
                                                    setting = setting,
                                                  conf_level = conf_level)}
 
-  cl <- makeCluster(14,outfile='xxx.log')
+  cl <- makeCluster(14,outfile='0527.log')
+  # cl <- makeCluster(14)
   clusterExport(cl,c("producePvalue"),envir=environment())
   list_return_df <- parLapply(cl,example_list,parallel_run)
   
@@ -144,21 +144,6 @@ summary_pvalue <- function(res_root,res_file_path,setting){
         write(one, file=summary_res_file, append=T)
       }
       
-      # sub_df.noise0.2 <- sub_df[endsWith(sub_df$col2,'noise0.2'),]
-      # for(statistic in unique(df$statistic)){
-      #   item_df <- sub_df.noise0.2[sub_df.noise0.2$statistic==statistic,'pvalue'] 
-      #   ratio_rejectN0 <- sum(item_df < 1 - conf_level) / length(item_df)
-      #   one <- paste(scenario,'normal vs. noise0.2',indicator,statistic,ratio_rejectN0,sep = ',')
-      #   write(one, file=summary_res_file, append=T)
-      # }
-      # 
-      # sub_df.noise0.3 <- sub_df[endsWith(sub_df$col2,'noise0.3'),]
-      # for(statistic in unique(df$statistic)){
-      #   item_df <- sub_df.noise0.3[sub_df.noise0.3$statistic==statistic,'pvalue'] 
-      #   ratio_rejectN0 <- sum(item_df < 1 - conf_level) / length(item_df)
-      #   one <- paste(scenario,'normal vs. noise0.3',indicator,statistic,ratio_rejectN0,sep = ',')
-      #   write(one, file=summary_res_file, append=T)
-      # }
       
       sub_df.normal <- sub_df[!endsWith(sub_df$col2,'noise0.05') & !endsWith(sub_df$col2,'noise0.1'),]
       for(statistic in unique(df$statistic)){
@@ -199,36 +184,23 @@ summary_mcnemar <- function(threshold=3.8414588,root_path='result/differentNoise
   indicator <- '' # note McNemar is not related with indicator
   for(scenario in unique(df$scenario)){
     sub_df <- df[df$scenario == scenario,]
-    
-    
-    # sub_df.noise0.3 <- sub_df[endsWith(sub_df$folder2,'noise0.3'),]
-    # item_df <- sub_df.noise0.3[,'mcnemar'] 
-    # ratio_rejectN0 <- sum(item_df > threshold) / length(item_df)
-    # one <- paste(scenario,'normal vs. noise0.3',indicator,statistic,ratio_rejectN0,sep = ',')
-    # write(one, file=summary_res_file, append=T)
-    # 
-    # sub_df.noise0.2 <- sub_df[endsWith(sub_df$folder2,'noise0.2'),]
-    # item_df <- sub_df.noise0.2[,'mcnemar'] 
-    # ratio_rejectN0 <- sum(item_df > threshold) / length(item_df)
-    # one <- paste(scenario,'normal vs. noise0.2',indicator,statistic,ratio_rejectN0,sep = ',')
-    # write(one, file=summary_res_file, append=T)
-    
     sub_df.noise0.1 <- sub_df[endsWith(sub_df$folder2,'noise0.1'),]
     item_df <- sub_df.noise0.1[,'mcnemar'] 
-    ratio_rejectN0 <- sum(item_df > threshold) / length(item_df)
+    ratio_rejectN0 <- sum(item_df[!is.na(item_df)] > threshold) / length(item_df)
     one <- paste(scenario,'normal vs. noise0.1',indicator,statistic,ratio_rejectN0,sep = ',')
     write(one, file=summary_res_file, append=T)
     
     sub_df.noise0.05 <- sub_df[endsWith(sub_df$folder2,'noise0.05'),]
     
     item_df <- sub_df.noise0.05[,'mcnemar'] 
-    ratio_rejectN0 <- sum(item_df > threshold) / length(item_df)
+    
+    ratio_rejectN0 <- sum(item_df[!is.na(item_df)] > threshold) / length(item_df)
     one <- paste(scenario,'normal vs. noise0.05',indicator,statistic,ratio_rejectN0,sep = ',')
     write(one, file=summary_res_file, append=T)
     sub_df.normal <- sub_df[!endsWith(sub_df$folder2,'noise0.05') & !endsWith(sub_df$folder2,'noise0.1'),]
     
     item_df <- sub_df.normal[,'mcnemar'] 
-    ratio_rejectN0 <- sum(item_df > threshold) / length(item_df)
+    ratio_rejectN0 <- sum(item_df[!is.na(item_df)] > threshold) / length(item_df)
     one <- paste(scenario,'normal vs. normal',indicator,statistic,ratio_rejectN0,sep = ',')
     write(one, file=summary_res_file, append=T)
   }
@@ -266,10 +238,15 @@ reconstruct <- function(summary_res_file,final_path){
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 getwd()
 
-fold <- '30Fold'
+fold <- '10Fold'
+if(F){
+  mcnemar_root_path <- 'result/differentNoise/LB-ideal-s/pairedResult/'
+  pvalue_root_path <- 'result/differentNoise/LB-ideal-softInterval50//pairedResult/'
+}else{
+  mcnemar_root_path <- 'result/differentNoise/LB-ideal-s/pairedResult/'
+  pvalue_root_path <- 'result/differentNoise/meta.LeveragingBag-10runs/pairedResult/'
+}
 
-mcnemar_root_path <- 'result/differentNoise/LB-ideal-s/pairedResult/'
-pvalue_root_path <- 'result/differentNoise/LB-ideal/pairedResult/'
 
 for (setting in 1:3){
   summary_res_file <- file.path('RQ3',paste(fold,'-pvalue_summary-setting',setting,'.csv',sep = ''))
