@@ -1,5 +1,5 @@
 
-McNemar <- function(df1,df2,interval){
+McNemar <- function(df1,df2,interval,softInterval){
   # df1 <- value1
   # df2 <- value2
   
@@ -26,10 +26,15 @@ McNemar <- function(df1,df2,interval){
   n10 <- cumsum(item_10)
   n01 <- cumsum(item_01)
   
-  # n10 <- n10[seq(interval,length(n10),interval)]
-  # n01 <- n01[seq(interval,length(n01),interval)]
-  n10 <- n10[seq(interval,length(n10),floor(length(n10)/interval))]
-  n01 <- n01[seq(interval,length(n01),floor(length(n01)/interval))]
+  
+  if(softInterval){
+    n10 <- n10[seq(interval,length(n10),floor(length(n10)/interval))]
+    n01 <- n01[seq(interval,length(n01),floor(length(n01)/interval))]
+  }else{
+    n10 <- n10[seq(interval,length(n10),interval)]
+    n01 <- n01[seq(interval,length(n01),interval)]
+  }
+  
   # cat(seq(1,length(n10),floor(length(n10)/interval)),
   #     '\n')
   m = (n10-n01)^2/(n10+n01)

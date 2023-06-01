@@ -3,7 +3,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source('mcnemar.R')
 library('dplyr')
 
-producePairedResult <- function(folder1,folder2,interval){
+producePairedResult <- function(folder1,folder2,interval,softInterval){
   cat(folder1,folder2,'\n')
   posfix <- paste(fold,eva,postfix,sep='_')
   pat = paste(scenario,fold,eva,postfix,sep='_')
@@ -31,9 +31,13 @@ producePairedResult <- function(folder1,folder2,interval){
         value2 = as.numeric(df2[as.numeric(df2$f)==f,indicator])
         min_len <- min(length(value1),length(value2))
         # TODO: change the definition of interval
-        #idx_sep <- seq(interval,length(value1),interval)
-        idx_sep <- seq(interval,min_len,interval)
-        #idx_sep <- seq(1,length(value1),length(value1)/interval)
+        
+        if(softInterval){
+          idx_sep <- seq(1,min_len,length(min_len)/interval)
+        }else{
+          idx_sep <- seq(interval,min_len,interval)
+        }
+        
         counter = 1
         v1 <- value1[idx_sep]
         v2 <- value2[idx_sep]
@@ -60,7 +64,7 @@ producePairedResult <- function(folder1,folder2,interval){
 
 
 
-produceMcNemarResult <- function(folder1,folder2,interval){
+produceMcNemarResult <- function(folder1,folder2,interval,softInterval){
   pat = paste(scenario,fold,eva,postfix,sep='_')
   
   posfix <- paste(fold,eva,postfix,sep='_')
@@ -80,6 +84,7 @@ produceMcNemarResult <- function(folder1,folder2,interval){
     cat(idx,'\n')
     df1 <- read.table(file.path(folder1,files1[idx]),sep = ',',check.names = F,colClasses = y,header = T)
     df2 <- read.table(file.path(folder2,files2[idx]),sep = ',',check.names = F,colClasses = y,header = T)
+    read.csv('seed1-noise0/0_edx-platform(master)_meta.LeveragingBag_EvaluatePrequentialDelayedCVPosNegWindow_7_90_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv')
     
     file <- strsplit(files1[idx],'_')[[1]][2]
     for(fold in folds){
@@ -87,7 +92,7 @@ produceMcNemarResult <- function(folder1,folder2,interval){
       value1 = df1[as.numeric(df1$fold)==fold,]
       value2 = df2[as.numeric(df2$fold)==fold,]
       # TODO change interval
-      list_m <- McNemar(value1,value2,interval)
+      list_m <- McNemar(value1,value2,interval,softInterval)
       # done
       
       sub_df <- data.frame(scenario=scenario,dataset=file,fold=fold,
@@ -121,9 +126,9 @@ parallel_run <- function(example_element){
   mcnemar_test <- example_element$mcnemar_test
   cat(folder1,folder2,'\n')
   if(mcnemar_test){
-    produceMcNemarResult(folder1,folder2,interval)
+    produceMcNemarResult(folder1,folder2,interval,softInterval)
   }else{
-    producePairedResult(folder1,folder2,interval)
+    producePairedResult(folder1,folder2,interval,softInterval)
   }
 }
 
@@ -141,14 +146,14 @@ parallel_run2 <- function(example_element){
   cat(folder1,folder2,folder3,'\n')
   
   if(mcnemar_test){
-   produceMcNemarResult(folder1,folder2,interval)
-    produceMcNemarResult(folder1,folder3,interval)
+   produceMcNemarResult(folder1,folder2,interval,softInterval)
+    produceMcNemarResult(folder1,folder3,interval,softInterval)
     #produceMcNemarResult(folder1,folder4,interval)
     #produceMcNemarResult(folder1,folder5,interval)
 
   }else{
-    producePairedResult(folder1,folder2,interval)
-    producePairedResult(folder1,folder3,interval)
+    producePairedResult(folder1,folder2,interval,softInterval)
+    producePairedResult(folder1,folder3,interval,softInterval)
     #producePairedResult(folder1,folder4,interval)
     #producePairedResult(folder1,folder5,interval)
   }
@@ -173,7 +178,8 @@ Type1_error <- function(df_folders,maxPair=50,mcnemar_test=F){
                      "interval",
                      "indicators",
                      "x",
-                     "y"),envir=environment())
+                     "y",
+                     "softInterval"),envir=environment())
   example_list <- list()
   for(i in 1:length(folders0)){
     for(j in (i+1):length(folders0)){
@@ -211,7 +217,8 @@ Type2_error <- function(df_folders,maxPair=50,mcnemar_test=F){
                      "interval",
                      "indicators",
                      "x",
-                     "y"),envir=environment())
+                     "y",
+                     "softInterval"),envir=environment())
   example_list <- list()
   for(i in 1:length(folders0)){
     
@@ -235,8 +242,7 @@ Type2_error <- function(df_folders,maxPair=50,mcnemar_test=F){
 }
 
 
-# scenarios = c('DelayedCVIdeal','DelayedCVExtension','DelayedCVPosNegWindow(7-90)')
-scenarios = c('DelayedCVIdeal')
+
  
 
 eva = 'FF0.99'
@@ -255,6 +261,7 @@ indicators = c('Recall for class 1 (percent)',
                'Kappa Gmean Temporal Statistic  (percent)',
                'FPR for class 1 (percent)',
                'Kappa FPR Temporal Statistic 1 (percent)')
+
 
 x <- c()
 for(i in 1:46){
@@ -283,21 +290,25 @@ batchFolder <- function(seeds){
   folders03 <- paste('seed',seeds,'-noise0.3',sep='')
   return(data.frame(folders0,folders005,folders01,folders02,folders03))
 }
-
+# scenarios = c('DelayedCVIdeal','DelayedCVExtension','DelayedCVPosNegWindow(7-90)')
+scenarios = c('DelayedCVPosNegWindow(7-90)')
 if(F){
   simple_path <- './result/differentNoise/LB-ideal-s/'
   all_path <- './result/differentNoise/LB-ideal/'
 }else{
-  simple_path <- './result/differentNoise/LB-ideal-s/'
-  all_path <- './result/differentNoise/meta.LeveragingBag-10runs/'
+  simple_path <- './result/differentNoise/LB-hI-100-HITL-simple/'
+  all_path <- './result/differentNoise/meta.LeveragingBag-hardInterval-100-HITL/'
 }
 
+
+softInterval <- F
+interval <- 100
 if(T){
   for(scenario in scenarios){
     seeds <- 1:5
     # TODO: change the definition of interval
     # interval is expected number of check points new
-    interval = 10
+    interval = interval
     df_folders <- batchFolder(seeds)
     setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
     setwd(simple_path)
@@ -310,7 +321,7 @@ if(T){
   for(scenario in scenarios){
     seeds <- 1:10
     #interval = 1000
-    interval = 10
+    interval = interval
     df_folders <- batchFolder(seeds)
     setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
     setwd(simple_path)
@@ -318,7 +329,7 @@ if(T){
   }
 }
 
-if(F){
+if(T){
   for(scenario in scenarios){
     seeds <- 1:50
     interval <- 1

@@ -13,34 +13,39 @@ files <-
              pattern = 'arff$',
              full.names = T)
 
-seeds <- as.character(1:50)
-
-
 noises <- c('0','0.05','0.1')
+fold = '30'
+# fold = '10'
+if(F){
+  f_sampleFrequency = '1'
+  q_timeFrequency = '1'
+  seeds <- 1:5
+}else{
+  seeds <- as.character(1:50)
+  f_sampleFrequency = '100'
+  q_timeFrequency = '100'
+}
 
-f_sampleFrequency = '1000'
-q_timeFrequency = '1000'
-# fold = '30'
-fold = '10'
-# f_sampleFrequency = '1'
-# q_timeFrequency = '1'
 
 validation = 'Bootstrap-Validation'
-softInvertal <- T
+
 #script_file <- paste('HT-noise.sh',sep='')
-script_file <- paste('statisticalTest_softInvertal-10Fold-30.sh',sep='')
+script_file <- paste('statisticalTest_hardInvertal-100-HITL-30fold.sh',sep='')
+softInvertal <- F
 interval <- 30 / 0.632
 for(noise in noises){
   for(seed in seeds){
    # script_file <- paste('experiment-differentNoise-seed',seed,'.sh',sep='')
     for (i in 1:length(files)) {
+      project <- files[i]
+      
       if(softInvertal){
-        project <- files[i]
         data <- read.arff(project)
         fre <- ceiling(nrow(data)/interval)
         f_sampleFrequency <- as.character(fre)
         q_timeFrequency <- as.character(fre)
       }
+      
       
       for (learner in learners) {
         
@@ -48,7 +53,7 @@ for(noise in noises){
         dir.create(res_root,recursive = T, showWarnings = F)
         
         
-        if(F){
+        if(T){
           #PosNeg
           PosWinowLengths <- c(7)
           NegWinowLengths <- c(90)
@@ -80,7 +85,7 @@ for(noise in noises){
             sink()
           }
         }
-        if(T){
+        if(F){
           #Ideal
           evaluation_method <- 'EvaluatePrequentialDelayedCVIdeal'
           # script_file <- 'command-EvaluatePrequentialDelayedCVIdeal.sh'

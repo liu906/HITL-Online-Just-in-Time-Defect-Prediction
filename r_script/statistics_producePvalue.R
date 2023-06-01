@@ -83,13 +83,8 @@ parallel_run <- function(df){
 }
 
 
-
-
-
-summary_pvalue <- function(res_root,res_file_path,setting){
+summary_pvalue <- function(res_root,res_file_path,setting,allDataset){
   
-  
-  # write(paste('scenario','dataset','instance','indicator','col1','col2','statistic','pvalue',sep = ','), file=res_file_path, append=F)
   conf_level = 0.95
   files <- list.files(res_root,pattern = fold)
   example_list <- list()
@@ -122,36 +117,71 @@ summary_pvalue <- function(res_root,res_file_path,setting){
   write.csv(df,paste(res_file_path,'_detail.csv',sep = ''),row.names = F)
   indicators <- unique(df$indicator)
   scenarios <- unique(df$scenario)
-  
+  datasets <- unique(df$dataset)
   
   for (scenario in scenarios) {
     for(indicator in indicators){
       sub_df <- df[df$scenario== scenario & df$indicator== indicator, ]
-      
-      sub_df.noise0.1 <- sub_df[endsWith(sub_df$col2,'noise0.1'),]
-      
-      for(statistic in unique(df$statistic)){
-        item_df <- sub_df.noise0.1[sub_df.noise0.1$statistic==statistic,'pvalue'] 
-        ratio_rejectN0 <- sum(as.numeric(item_df) < 1 - conf_level) / length(item_df)
-        one <- paste(scenario,'normal vs. noise0.1',indicator,statistic,ratio_rejectN0,sep = ',')
-        write(one, file=summary_res_file, append=T)
-      }
-      sub_df.noise0.05 <- sub_df[endsWith(sub_df$col2,'noise0.05'),]
-      for(statistic in unique(df$statistic)){
-        item_df <- sub_df.noise0.05[sub_df.noise0.05$statistic==statistic,'pvalue'] 
-        ratio_rejectN0 <- sum(as.numeric(item_df) < 1 - conf_level) / length(item_df)
-        one <- paste(scenario,'normal vs. noise0.05',indicator,statistic,ratio_rejectN0,sep = ',')
-        write(one, file=summary_res_file, append=T)
-      }
-      
-      
-      sub_df.normal <- sub_df[!endsWith(sub_df$col2,'noise0.05') & !endsWith(sub_df$col2,'noise0.1'),]
-      for(statistic in unique(df$statistic)){
-        item_df <- sub_df.normal[sub_df.normal$statistic==statistic,'pvalue'] 
-        ratio_rejectN0 <- sum(as.numeric(item_df) < 1 - conf_level) / length(item_df)
-        one <- paste(scenario,'normal vs. normal',indicator,statistic,ratio_rejectN0,sep = ',')
-        write(one, file=summary_res_file, append=T)
-      }
+        sub_df.noise0.1 <- sub_df[endsWith(sub_df$col2,'noise0.1'),]
+        for(statistic in unique(df$statistic)){
+          if(allDataset){
+            item_df <- sub_df.noise0.1[sub_df.noise0.1$statistic==statistic,'pvalue'] 
+            ratio_rejectN0 <- sum(as.numeric(item_df) < 1 - conf_level) / length(item_df)
+            one <- paste(scenario,'normal vs. noise0.1',indicator,statistic,ratio_rejectN0,sep = ',')
+            write(one, file=summary_res_file, append=T)
+          }else{
+            for (dataset in datasets) {
+              item_df <- sub_df.noise0.1[sub_df.noise0.1$statistic==statistic & sub_df.noise0.1$dataset==dataset,'pvalue'] 
+              ratio_rejectN0 <- sum(as.numeric(item_df) < 1 - conf_level) / length(item_df)
+              one <- paste(scenario,dataset,'normal vs. noise0.1',indicator,statistic,ratio_rejectN0,sep = ',')
+              write(one, file=summary_res_file, append=T)
+            }
+            
+          }
+          
+        }
+        
+        
+        
+        sub_df.noise0.05 <- sub_df[endsWith(sub_df$col2,'noise0.05'),]
+
+        for(statistic in unique(df$statistic)){
+          if(allDataset){
+            item_df <- sub_df.noise0.05[sub_df.noise0.05$statistic==statistic,'pvalue'] 
+            ratio_rejectN0 <- sum(as.numeric(item_df) < 1 - conf_level) / length(item_df)
+            one <- paste(scenario,'normal vs. noise0.05',indicator,statistic,ratio_rejectN0,sep = ',')
+            write(one, file=summary_res_file, append=T)
+          }else{
+            for (dataset in datasets) {
+              item_df <- sub_df.noise0.05[sub_df.noise0.05$statistic==statistic & sub_df.noise0.05$dataset==dataset,'pvalue'] 
+              ratio_rejectN0 <- sum(as.numeric(item_df) < 1 - conf_level) / length(item_df)
+              one <- paste(scenario,dataset,'normal vs. noise0.05',indicator,statistic,ratio_rejectN0,sep = ',')
+              write(one, file=summary_res_file, append=T)
+            }
+          }
+          
+        }
+        
+        
+        sub_df.normal <- sub_df[!endsWith(sub_df$col2,'noise0.05') & !endsWith(sub_df$col2,'noise0.1'),]
+        for(statistic in unique(df$statistic)){
+          if(allDataset){
+            item_df <- sub_df.normal[sub_df.normal$statistic==statistic,'pvalue'] 
+            ratio_rejectN0 <- sum(as.numeric(item_df) < 1 - conf_level) / length(item_df)
+            one <- paste(scenario,'normal vs. normal',indicator,statistic,ratio_rejectN0,sep = ',')
+            write(one, file=summary_res_file, append=T)
+          }else{
+            for (dataset in datasets) {
+              item_df <- sub_df.normal[sub_df.normal$statistic==statistic & sub_df.normal$dataset==dataset,'pvalue'] 
+              ratio_rejectN0 <- sum(as.numeric(item_df) < 1 - conf_level) / length(item_df)
+              one <- paste(scenario,dataset,'normal vs. normal',indicator,statistic,ratio_rejectN0,sep = ',')
+              write(one, file=summary_res_file, append=T)
+            }
+          }
+          
+        }
+
+    
     }
   }
   
@@ -160,7 +190,7 @@ summary_pvalue <- function(res_root,res_file_path,setting){
 
 
 
-summary_mcnemar <- function(threshold=3.8414588,root_path='result/differentNoise/LB-ideal-s/pairedResult/'){
+summary_mcnemar <- function(threshold=3.8414588,root_path='result/differentNoise/LB-ideal-s/pairedResult/',allDataset=T){
   
   files <- list.files(root_path,pattern = fold)
   files <- files[startsWith(files,'mcnemar')]
@@ -182,27 +212,53 @@ summary_mcnemar <- function(threshold=3.8414588,root_path='result/differentNoise
   
   statistic <- 'mcnemar'
   indicator <- '' # note McNemar is not related with indicator
+  datasets = unique(df$dataset)
   for(scenario in unique(df$scenario)){
     sub_df <- df[df$scenario == scenario,]
-    sub_df.noise0.1 <- sub_df[endsWith(sub_df$folder2,'noise0.1'),]
-    item_df <- sub_df.noise0.1[,'mcnemar'] 
-    ratio_rejectN0 <- sum(item_df[!is.na(item_df)] > threshold) / length(item_df)
-    one <- paste(scenario,'normal vs. noise0.1',indicator,statistic,ratio_rejectN0,sep = ',')
-    write(one, file=summary_res_file, append=T)
-    
-    sub_df.noise0.05 <- sub_df[endsWith(sub_df$folder2,'noise0.05'),]
-    
-    item_df <- sub_df.noise0.05[,'mcnemar'] 
-    
-    ratio_rejectN0 <- sum(item_df[!is.na(item_df)] > threshold) / length(item_df)
-    one <- paste(scenario,'normal vs. noise0.05',indicator,statistic,ratio_rejectN0,sep = ',')
-    write(one, file=summary_res_file, append=T)
-    sub_df.normal <- sub_df[!endsWith(sub_df$folder2,'noise0.05') & !endsWith(sub_df$folder2,'noise0.1'),]
-    
-    item_df <- sub_df.normal[,'mcnemar'] 
-    ratio_rejectN0 <- sum(item_df[!is.na(item_df)] > threshold) / length(item_df)
-    one <- paste(scenario,'normal vs. normal',indicator,statistic,ratio_rejectN0,sep = ',')
-    write(one, file=summary_res_file, append=T)
+    if(allDataset){
+      sub_df.noise0.1 <- sub_df[endsWith(sub_df$folder2,'noise0.1'),]
+      item_df <- sub_df.noise0.1[,'mcnemar'] 
+      ratio_rejectN0 <- sum(item_df[!is.na(item_df)] > threshold) / length(item_df)
+      one <- paste(scenario,'normal vs. noise0.1',indicator,statistic,ratio_rejectN0,sep = ',')
+      write(one, file=summary_res_file, append=T)
+      
+      sub_df.noise0.05 <- sub_df[endsWith(sub_df$folder2,'noise0.05'),]
+      
+      item_df <- sub_df.noise0.05[,'mcnemar'] 
+      
+      ratio_rejectN0 <- sum(item_df[!is.na(item_df)] > threshold) / length(item_df)
+      one <- paste(scenario,'normal vs. noise0.05',indicator,statistic,ratio_rejectN0,sep = ',')
+      write(one, file=summary_res_file, append=T)
+      sub_df.normal <- sub_df[!endsWith(sub_df$folder2,'noise0.05') & !endsWith(sub_df$folder2,'noise0.1'),]
+      
+      item_df <- sub_df.normal[,'mcnemar'] 
+      ratio_rejectN0 <- sum(item_df[!is.na(item_df)] > threshold) / length(item_df)
+      one <- paste(scenario,'normal vs. normal',indicator,statistic,ratio_rejectN0,sep = ',')
+      write(one, file=summary_res_file, append=T)
+    }else{
+      for (dataset in datasets) {
+        sub_df.noise0.1 <- sub_df[endsWith(sub_df$folder2,'noise0.1') & sub_df$dataset==dataset,]
+        item_df <- sub_df.noise0.1[,'mcnemar'] 
+        ratio_rejectN0 <- sum(item_df[!is.na(item_df)] > threshold) / length(item_df)
+        one <- paste(scenario,dataset,'normal vs. noise0.1',indicator,statistic,ratio_rejectN0,sep = ',')
+        write(one, file=summary_res_file, append=T)
+        
+        sub_df.noise0.05 <- sub_df[endsWith(sub_df$folder2,'noise0.05') & sub_df$dataset==dataset,]
+        
+        item_df <- sub_df.noise0.05[,'mcnemar'] 
+        
+        ratio_rejectN0 <- sum(item_df[!is.na(item_df)] > threshold) / length(item_df)
+        one <- paste(scenario,dataset,'normal vs. noise0.05',indicator,statistic,ratio_rejectN0,sep = ',')
+        write(one, file=summary_res_file, append=T)
+        sub_df.normal <- sub_df[!endsWith(sub_df$folder2,'noise0.05') & !endsWith(sub_df$folder2,'noise0.1') & sub_df$dataset==dataset,]
+        
+        item_df <- sub_df.normal[,'mcnemar'] 
+        ratio_rejectN0 <- sum(item_df[!is.na(item_df)] > threshold) / length(item_df)
+        one <- paste(scenario,dataset,'normal vs. normal',indicator,statistic,ratio_rejectN0,sep = ',')
+        write(one, file=summary_res_file, append=T)
+      }
+    }
+
   }
   
 }
@@ -239,27 +295,44 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 getwd()
 
 fold <- '10Fold'
-if(F){
-  mcnemar_root_path <- 'result/differentNoise/LB-ideal-s/pairedResult/'
-  pvalue_root_path <- 'result/differentNoise/LB-ideal-softInterval50//pairedResult/'
+if(T){
+  mcnemar_root_path <- 'result/differentNoise/LB-hI-100-HITL-simple/pairedResult/'
+  pvalue_root_path <- 'result/differentNoise/meta.LeveragingBag-hardInterval-100-HITL/pairedResult/'
 }else{
   mcnemar_root_path <- 'result/differentNoise/LB-ideal-s/pairedResult/'
-  pvalue_root_path <- 'result/differentNoise/meta.LeveragingBag-10runs/pairedResult/'
+  pvalue_root_path <- 'result/differentNoise/meta.LeveragingBag-hardInterval-100-ideal/pairedResult/'
 }
 
 
 for (setting in 1:3){
-  summary_res_file <- file.path('RQ3',paste(fold,'-pvalue_summary-setting',setting,'.csv',sep = ''))
-  write(paste('scenario','comparison','indicator','statistic','ratio_rejectN0',sep=','),
-        file=summary_res_file,
-        append = F)
-  summary_mcnemar(root_path=mcnemar_root_path)
   
-  summary_pvalue(res_root=pvalue_root_path,
-                 res_file_path= file.path('RQ3',paste(fold,'-pvalue-setting',setting,'.csv',sep='')),
-                 setting = setting)
-  reconstruct(summary_res_file,
-              final_path=file.path('RQ3',paste(fold,'-formulated-pvalue_summary-setting',setting,'.csv',sep = '')))
+  if(T){
+    summary_res_file <- file.path('RQ3',paste(fold,'-pvalue_summary-setting',setting,'.csv',sep = ''))
+    write(paste('scenario','comparison','indicator','statistic','ratio_rejectN0',sep=','),
+          file=summary_res_file,
+          append = F)
+    summary_mcnemar(root_path=mcnemar_root_path,allDataset=T)
+    
+    summary_pvalue(res_root=pvalue_root_path,
+                   res_file_path= file.path('RQ3',paste(fold,'-pvalue-setting',setting,'.csv',sep='')),
+                   setting = setting,
+                   allDataset=T)
+    reconstruct(summary_res_file,
+                final_path=file.path('RQ3',paste(fold,'-formulated-pvalue_summary-setting',setting,'.csv',sep = '')))
+  }
+  if(F){
+    summary_res_file <- file.path('RQ3',paste(fold,'-pvalue-SplitDataset_summary-setting',setting,'.csv',sep = ''))
+    write(paste('scenario','dataset','comparison','indicator','statistic','ratio_rejectN0',sep=','),
+          file=summary_res_file,
+          append = F)
+    summary_mcnemar(root_path=mcnemar_root_path,allDataset=F)
+    
+    summary_pvalue(res_root=pvalue_root_path,
+                   res_file_path= file.path('RQ3',paste(fold,'-pvalue-setting',setting,'.csv',sep='')),
+                   setting = setting,
+                   allDataset=F)
+    
+  }
   
 }
 
