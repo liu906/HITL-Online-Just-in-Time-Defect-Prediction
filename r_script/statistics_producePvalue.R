@@ -294,7 +294,7 @@ reconstruct <- function(summary_res_file,final_path){
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 getwd()
 
-fold <- '10Fold'
+fold <- '30Fold'
 if(T){
   mcnemar_root_path <- 'result/differentNoise/LB-hI-100-HITL-simple/pairedResult/'
   pvalue_root_path <- 'result/differentNoise/meta.LeveragingBag-hardInterval-100-HITL/pairedResult/'
@@ -302,7 +302,8 @@ if(T){
   mcnemar_root_path <- 'result/differentNoise/LB-ideal-s/pairedResult/'
   pvalue_root_path <- 'result/differentNoise/meta.LeveragingBag-hardInterval-100-ideal/pairedResult/'
 }
-
+mcnemar_root_path <- './result/differentNoise/100-HITL-simple-30fold/pairedResult'
+pvalue_root_path <- './result/differentNoise/LB-30fold-HITL-100interval/pairedResult'
 
 for (setting in 1:3){
   

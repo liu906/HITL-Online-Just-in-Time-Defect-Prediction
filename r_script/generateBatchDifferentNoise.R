@@ -16,10 +16,10 @@ files <-
 noises <- c('0','0.05','0.1')
 fold = '30'
 # fold = '10'
-if(F){
+if(T){
   f_sampleFrequency = '1'
   q_timeFrequency = '1'
-  seeds <- 1:5
+  seeds <- 6:10
 }else{
   seeds <- as.character(1:50)
   f_sampleFrequency = '100'
@@ -30,7 +30,7 @@ if(F){
 validation = 'Bootstrap-Validation'
 
 #script_file <- paste('HT-noise.sh',sep='')
-script_file <- paste('statisticalTest_hardInvertal-100-HITL-30fold.sh',sep='')
+script_file <- paste('simple2.sh',sep='')
 softInvertal <- F
 interval <- 30 / 0.632
 for(noise in noises){

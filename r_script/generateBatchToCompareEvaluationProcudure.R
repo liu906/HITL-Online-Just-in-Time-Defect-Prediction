@@ -3,7 +3,8 @@ setwd('D:/work/real-world-evaluation/')
 source('./r_script/generateExperimentBatch.R')
 getwd()
 learners = c(
-  'trees.HoeffdingTree'
+  # 'trees.HoeffdingTree'
+  'meta.OOB'
 )
 
 
@@ -17,11 +18,12 @@ files <-
 seeds <- c('1')
 noises <- c('0')
 
-f_sampleFrequency = '30'
-q_timeFrequency = '30'
-fold <- '30'
+f_sampleFrequency = '100'
+q_timeFrequency = '100'
+
+fold <- '10'
 validation = 'Bootstrap-Validation'
-script_file <- paste('auto(90,90).sh',sep='')
+script_file <- paste('HITL.sh',sep='')
 for(noise in noises){
   for(seed in seeds){
     
@@ -35,14 +37,14 @@ for(noise in noises){
         if(T){
           #PosNeg
           #PosWinowLengths <- c(1,3,7,15,30,60)
-          PosWinowLengths <- c(90)
+          PosWindowLengths <- c(1,3,7,15)
           # NegWinowLengths <- c(15,90)
-          NegWinowLengths <- c(90)
+          NegWindowLengths <- c(15)
           evaluation_method <- 'EvaluatePrequentialDelayedCVPosNegWindow'
           # script_file <- 'command-EvaluatePrequentialDelayedCVPosNegWindow.sh'
-          for(P_day in PosWinowLengths){
+          for(P_day in PosWindowLengths){
             P <- P_day * seconds_in_a_day
-            for(N_day in NegWinowLengths){
+            for(N_day in NegWindowLengths){
               N <- N_day * seconds_in_a_day
               command <- combineCommandSimplePath(learner,seed,f_sampleFrequency,q_timeFrequency,project,P,N,evaluation_method,res_root,validation,noise,fold)
               sink(script_file,append = T)
@@ -58,7 +60,8 @@ for(noise in noises){
           #Extension
           evaluation_method <- 'EvaluatePrequentialDelayedCVExtension'
           # script_file <- 'command-EvaluatePrequentialDelayedCVExtension.sh'
-          for(N_day in NegWinowLengths){
+          NegWindowLengths <- c(15,30,60,90)
+          for(N_day in NegWindowLengths){
             N <- N_day * seconds_in_a_day
             command <- combineCommandSimplePath(learner,seed,f_sampleFrequency,q_timeFrequency,project,N,N,evaluation_method,res_root,validation,noise,fold)
             sink(script_file,append = T)
@@ -67,7 +70,7 @@ for(noise in noises){
             sink()
           }
         }
-        if(F){
+        if(T){
           #Ideal
           evaluation_method <- 'EvaluatePrequentialDelayedCVIdeal'
           # script_file <- 'command-EvaluatePrequentialDelayedCVIdeal.sh'

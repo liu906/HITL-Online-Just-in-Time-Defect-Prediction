@@ -84,7 +84,6 @@ produceMcNemarResult <- function(folder1,folder2,interval,softInterval){
     cat(idx,'\n')
     df1 <- read.table(file.path(folder1,files1[idx]),sep = ',',check.names = F,colClasses = y,header = T)
     df2 <- read.table(file.path(folder2,files2[idx]),sep = ',',check.names = F,colClasses = y,header = T)
-    read.csv('seed1-noise0/0_edx-platform(master)_meta.LeveragingBag_EvaluatePrequentialDelayedCVPosNegWindow_7_90_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv')
     
     file <- strsplit(files1[idx],'_')[[1]][2]
     for(fold in folds){
@@ -248,7 +247,7 @@ Type2_error <- function(df_folders,maxPair=50,mcnemar_test=F){
 eva = 'FF0.99'
 postfix = "detail"
  
-if(T){
+if(F){
   fold = '10Fold'
   folds = 0:9
 }else{
@@ -299,11 +298,13 @@ if(F){
   simple_path <- './result/differentNoise/LB-hI-100-HITL-simple/'
   all_path <- './result/differentNoise/meta.LeveragingBag-hardInterval-100-HITL/'
 }
+simple_path <- './result/differentNoise/100-HITL-simple-30fold/'
+all_path <- './result/differentNoise/LB-30fold-HITL-100interval/'
 
 
 softInterval <- F
 interval <- 100
-if(T){
+if(F){
   for(scenario in scenarios){
     seeds <- 1:5
     # TODO: change the definition of interval
@@ -329,7 +330,7 @@ if(T){
   }
 }
 
-if(T){
+if(F){
   for(scenario in scenarios){
     seeds <- 1:50
     interval <- 1
