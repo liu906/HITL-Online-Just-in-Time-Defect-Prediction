@@ -3,8 +3,9 @@ setwd('D:/work/real-world-evaluation/')
 source('./r_script/generateExperimentBatch.R')
 getwd()
 learners = c(
-  # 'trees.HoeffdingTree'
-  'meta.OOB'
+  'trees.HoeffdingTree'
+  # 'meta.OOB'
+  
 )
 
 
@@ -18,12 +19,12 @@ files <-
 seeds <- c('1')
 noises <- c('0')
 
-f_sampleFrequency = '100'
-q_timeFrequency = '100'
+f_sampleFrequency = '30'
+q_timeFrequency = '30'
 
 fold <- '10'
 validation = 'Bootstrap-Validation'
-script_file <- paste('HITL.sh',sep='')
+script_file <- paste('RQ1-ideal.sh',sep='')
 for(noise in noises){
   for(seed in seeds){
     
@@ -34,12 +35,12 @@ for(noise in noises){
         res_root <- paste('./r_script/result/differentEvaluationProcudure/',learner,'/','seed',seed,'-noise',noise,sep='')
         dir.create(res_root,recursive = T, showWarnings = F)
         
-        if(T){
+        if(F){
           #PosNeg
           #PosWinowLengths <- c(1,3,7,15,30,60)
-          PosWindowLengths <- c(1,3,7,15)
+          PosWindowLengths <- c(15,90)
           # NegWinowLengths <- c(15,90)
-          NegWindowLengths <- c(15)
+          NegWindowLengths <- c(1,3,7,15,30,60,90)
           evaluation_method <- 'EvaluatePrequentialDelayedCVPosNegWindow'
           # script_file <- 'command-EvaluatePrequentialDelayedCVPosNegWindow.sh'
           for(P_day in PosWindowLengths){
@@ -60,7 +61,7 @@ for(noise in noises){
           #Extension
           evaluation_method <- 'EvaluatePrequentialDelayedCVExtension'
           # script_file <- 'command-EvaluatePrequentialDelayedCVExtension.sh'
-          NegWindowLengths <- c(15,30,60,90)
+          NegWindowLengths <- c(7,15,30,60,90)
           for(N_day in NegWindowLengths){
             N <- N_day * seconds_in_a_day
             command <- combineCommandSimplePath(learner,seed,f_sampleFrequency,q_timeFrequency,project,N,N,evaluation_method,res_root,validation,noise,fold)

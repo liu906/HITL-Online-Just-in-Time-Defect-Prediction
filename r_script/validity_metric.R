@@ -1,11 +1,11 @@
 
 compute_validity_metric <- function(ideal_evaluation, estimated_evaluation){
-  #return(100 - abs(ideal_evaluation-estimated_evaluation))
-  return(-abs(ideal_evaluation-estimated_evaluation)/ideal_evaluation)
+  return(100 - abs(ideal_evaluation-estimated_evaluation))
+  # return(-abs(ideal_evaluation-estimated_evaluation)/ideal_evaluation)
 }
 
 
-percentages <- seq(0.1,1,0.1)
+# percentages <- seq(0.1,1,0.1)
 # indicators = c('[avg] Recall for class 1 (percent)',
 #                '[avg] Kappa Recall Temporal Statistic 1 (percent)',
 #                '[avg] Gmean for recall  (percent)',
@@ -20,7 +20,8 @@ indicators = c('[avg] Recall for class 1 (percent)',
 
 res_root <- "D:/work/real-world-evaluation/r_script/result/differentEvaluationProcudure/trees.HoeffdingTree/seed1-noise0/dumpFile/"    
 files <- list.files(res_root,pattern = 'csv$')
-dataset_path <-'D:/work/real-world-evaluation/commit_guru_dataset/cut2years/key_timestamp/'
+# dataset_path <-'D:/work/real-world-evaluation/commit_guru_dataset/cut2years/key_timestamp/'
+dataset_path <-'D:/work/real-world-evaluation/commit_guru_dataset/cut2years/key_timestamp/top5000Commits/'
 projects <- c()
 for(file in files){
   project <- strsplit(file,'_')[[1]][1]
@@ -35,19 +36,30 @@ for(project in projects){
   temp <- substring(temp, 2, nchar(temp))
   key_timestamp_file <- list.files(dataset_path,pattern = temp)
   key_timestamp_df <- read.csv(file.path(dataset_path,key_timestamp_file))
+  percentages <- key_timestamp_df$percentages
   project.ideal.file <- project.files[grep('Ideal',project.files)]
   project.estimate.files <- project.files[!grepl('Ideal',project.files)]
   first_estimate <- T
   for(project.estimate.file in project.estimate.files){
     df.ideal <- read.csv(file.path(res_root,project.ideal.file),check.names = F)
     df.estimate <- read.csv(file.path(res_root,project.estimate.file),check.names = F)
+    df.estimate.idxs <- c()
+    df.ideal.idxs <- c()
+    for (ts in key_timestamp_df$timestamp) {
+      
+      df.ideal.idxs <- append(df.ideal.idxs,which.min(abs(df.ideal$`current timestamp` - ts)))
+      df.estimate.idxs <- append(df.estimate.idxs,which.min(abs(as.numeric(df.estimate$`current timestamp`) - ts)))
+    }
     
-    df.estimate.idxs <- as.integer(nrow(df.estimate)*percentages) 
-    df.estimate$`learning evaluation instances on certain fold`
-    df.ideal.idxs <- as.integer(nrow(df.ideal)*percentages)  
+    
+    # df.estimate.idxs <- as.integer(nrow(df.estimate)*percentages) 
+    # df.ideal.idxs <- as.integer(nrow(df.ideal)*percentages)  
+    
+    
     
     for(indicator in indicators){
-      validity <- compute_validity_metric(df.ideal[df.ideal.idxs,indicator],df.estimate[df.estimate.idxs,indicator])
+      validity <- compute_validity_metric(as.numeric(df.ideal[df.ideal.idxs,indicator]),
+                                          as.numeric(df.estimate[df.estimate.idxs,indicator]))
       ideal_validity <- compute_validity_metric(df.ideal[df.ideal.idxs,indicator],df.ideal[df.ideal.idxs,indicator])
       #pvalue <- wilcox.test(df.ideal[df.ideal.idxs,indicator],df.estimate[df.estimate.idxs,indicator],paired = T)$p.value
       #cd <- cohen.d(df.ideal[df.ideal.idxs,indicator],df.estimate[df.estimate.idxs,indicator],paired = T)
@@ -71,12 +83,14 @@ for(project in projects){
   }
 }
 
-sel <- c("PosNegWindow_3_90.csv", "PosNegWindow_15_90.csv", "PosNegWindow_30_90.csv", "PosNegWindow_7_90.csv", "Extension_90_90.csv","Ideal.csv")
+# sel <- c("PosNegWindow_3_90.csv", "PosNegWindow_15_90.csv", "PosNegWindow_30_90.csv", "PosNegWindow_7_90.csv", "Extension_90_90.csv","Ideal.csv")
+sel <- c("PosNegWindow_3_90.csv", "PosNegWindow_7_90.csv", "PosNegWindow_15_90.csv", "PosNegWindow_30_90.csv","PosNegWindow_60_90.csv", "Ideal.csv")
+sel <- c("PosNegWindow_3_90.csv", "PosNegWindow_7_90.csv", "PosNegWindow_30_90.csv","PosNegWindow_60_90.csv", "PosNegWindow_15_3.csv", "PosNegWindow_15_7.csv", "PosNegWindow_15_15.csv", "PosNegWindow_15_30.csv","PosNegWindow_15_60.csv", "PosNegWindow_15_90.csv","Ideal.csv")
 total_result <- total_result[total_result$estimate_scenario %in% sel,]
 
 # project=projects,Ideal='Ideal',indicator = unique(total_result$indicator)
 
-write.csv(total_result,"D:/work/real-world-evaluation/r_script/RQ3/validity_metric.csv",row.names = F)
+write.csv(total_result,"D:/work/real-world-evaluation/r_script/RQ3/validity_metric_new.csv",row.names = F)
 
 library(dplyr)
 library(ScottKnottESD)
@@ -127,6 +141,6 @@ for(percentage in percentages){
   }
 }
 
-res 
 
-write.csv(res[res$perc %in% c(0.1,0.5,1),],"D:/work/real-world-evaluation/r_script/RQ3/validity_metric_skESD.csv",row.names = T)
+
+write.csv(res[res$perc %in% c(0.1,0.5,1),],"D:/work/real-world-evaluation/r_script/RQ3/validity_metric_skESD_new.csv",row.names = T)
