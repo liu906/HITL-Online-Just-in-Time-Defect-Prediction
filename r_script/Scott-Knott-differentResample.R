@@ -58,14 +58,14 @@ for (file in files) {
 projects <- unique(projects)
 clfs <- c(
   'trees.HoeffdingTree',
-  '(meta.imbalanced.OnlineUnderOverBagging_-l_trees.HoeffdingTree_-s_10_-i_2)',
+ # '(meta.imbalanced.OnlineUnderOverBagging_-l_trees.HoeffdingTree_-s_10_-i_2)',
   '(meta.imbalanced.OnlineUnderOverBagging_-l_trees.HoeffdingTree_-s_1_-i_2)',
   '(meta.imbalanced.OnlineRUSBoost_-l_trees.HoeffdingTree_-s_1_-i_2)',
-  '(meta.imbalanced.OnlineRUSBoost_-l_trees.HoeffdingTree_-s_10_-i_2)',
-  '(meta.imbalanced.OnlineUnderOverBagging_-l_trees.HoeffdingTree_-s_10_-i_1)',
+#  '(meta.imbalanced.OnlineRUSBoost_-l_trees.HoeffdingTree_-s_10_-i_2)',
+ # '(meta.imbalanced.OnlineUnderOverBagging_-l_trees.HoeffdingTree_-s_10_-i_1)',
   '(meta.imbalanced.OnlineUnderOverBagging_-l_trees.HoeffdingTree_-s_1_-i_1)',
-  '(meta.imbalanced.OnlineRUSBoost_-l_trees.HoeffdingTree_-s_1_-i_1)',
-  '(meta.imbalanced.OnlineRUSBoost_-l_trees.HoeffdingTree_-s_10_-i_1)'
+  '(meta.imbalanced.OnlineRUSBoost_-l_trees.HoeffdingTree_-s_1_-i_1)'
+  #'(meta.imbalanced.OnlineRUSBoost_-l_trees.HoeffdingTree_-s_10_-i_1)'
 )
 
 scenarios <- c("EvaluatePrequentialDelayedCVExtension",   
@@ -74,7 +74,7 @@ scenarios <- c("EvaluatePrequentialDelayedCVExtension",
 
 seeds <- c("seed1")
 validations <- "Bootstrap-Validation"
-folds <- '30Fold'
+folds <- '10Fold'
 fadingfactors <- c("FF0.99")
 
 commit <- '1000'
@@ -90,13 +90,16 @@ for (scenario in scenarios) {
       for (clf in clfs) {
         
         clf_ <- paste('_', clf, '_', sep = '')
-        file <-
+        files <-
           list.files(root_path, pattern = glob2rx(
             paste('', project, clf_, scenario,folds, 'detail.csv', sep = '*')
           ))
         
-        list.files(root_path,pattern = clf)
-        # cat(file, '\n')
+        
+        file <- files[which.min(nchar(files))]
+        
+        
+        cat(file, '\n')
         df <- read.csv(file.path(root_path, file), check.names = F)
         temp <- glob2rx(project)
         temp <- substring(temp, 1, nchar(temp)-1)
