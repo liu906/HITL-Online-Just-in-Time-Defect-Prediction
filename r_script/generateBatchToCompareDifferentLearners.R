@@ -1,7 +1,8 @@
 # setwd('/media/lxt/TOSHIBA EXT/moa/')
 setwd('D:/work/real-world-evaluation/')
 source('./r_script/generateExperimentBatch.R')
-res_root <- './r_script/result/diffLearner-100/'
+res_root <- './r_script/result/diffLearner/'
+dir.create(res_root,showWarnings = F,recursive = T)
 learners = c(
   'trees.HoeffdingTree',
   'trees.HoeffdingAdaptiveTree',
@@ -42,11 +43,11 @@ files <-
              full.names = T)
 
 seed = '1'
-f_sampleFrequency = '100'
-q_timeFrequency = '100'
-fold = '30'
+f_sampleFrequency = '30'
+q_timeFrequency = '30'
+fold = '10'
 
-script_file <- 'differentLearner-100-addBaseline.sh'
+script_file <- 'differentBaselineLearner.sh'
 
 for (i in 1:length(files)) {
   project <- files[i]
@@ -55,7 +56,7 @@ for (i in 1:length(files)) {
     if(T){
       #PosNeg
       PosWinowLengths <- c(7)
-      NegWinowLengths <- c(90)
+      NegWinowLengths <- c(15)
       evaluation_method <- 'EvaluatePrequentialDelayedCVPosNegWindow'
       for(P_day in PosWinowLengths){
         P <- P_day * seconds_in_a_day

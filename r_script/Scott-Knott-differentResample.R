@@ -13,8 +13,8 @@ indicators <- c(
 dataset_path <-'D:/work/real-world-evaluation/commit_guru_dataset/cut2years/key_timestamp/top5000Commits/'
 # indicator <- indicators[1]
 setwd('D:/work/real-world-evaluation/')
-root_path <- 'r_script/result/differentLearner-30Fold/'
-root_path <- 'r_script/result/diffLearner/'
+
+root_path <- 'r_script/result/diffResampling/'
 files <- list.files(root_path, pattern = 'dumpFile.csv$')
 
 projects <- c()
@@ -56,12 +56,26 @@ for (file in files) {
 }
 
 projects <- unique(projects)
-clfs <- unique(clfs)
-scenarios <- unique(scenarios)
-seeds <- unique(seeds)
-validations <- unique(validations)
-folds <- unique(folds)
-fadingfactors <- unique(fadingfactors)
+clfs <- c(
+  'trees.HoeffdingTree',
+  '(meta.imbalanced.OnlineUnderOverBagging_-l_trees.HoeffdingTree_-s_10_-i_2)',
+  '(meta.imbalanced.OnlineUnderOverBagging_-l_trees.HoeffdingTree_-s_1_-i_2)',
+  '(meta.imbalanced.OnlineRUSBoost_-l_trees.HoeffdingTree_-s_1_-i_2)',
+  '(meta.imbalanced.OnlineRUSBoost_-l_trees.HoeffdingTree_-s_10_-i_2)',
+  '(meta.imbalanced.OnlineUnderOverBagging_-l_trees.HoeffdingTree_-s_10_-i_1)',
+  '(meta.imbalanced.OnlineUnderOverBagging_-l_trees.HoeffdingTree_-s_1_-i_1)',
+  '(meta.imbalanced.OnlineRUSBoost_-l_trees.HoeffdingTree_-s_1_-i_1)',
+  '(meta.imbalanced.OnlineRUSBoost_-l_trees.HoeffdingTree_-s_10_-i_1)'
+)
+
+scenarios <- c("EvaluatePrequentialDelayedCVExtension",   
+               "EvaluatePrequentialDelayedCVIdeal",
+               "EvaluatePrequentialDelayedCVPosNegWindow")
+
+seeds <- c("seed1")
+validations <- "Bootstrap-Validation"
+folds <- '30Fold'
+fadingfactors <- c("FF0.99")
 
 commit <- '1000'
 
@@ -74,14 +88,14 @@ for (scenario in scenarios) {
       #project <- projects[2]
       first_flag <- T
       for (clf in clfs) {
-        if(clf=='functions.MajorityClass' || clf=='functions.NoChange'){
-          next
-        }
+        
         clf_ <- paste('_', clf, '_', sep = '')
         file <-
           list.files(root_path, pattern = glob2rx(
-            paste('', project, clf_, scenario, 'detail.csv', sep = '*')
+            paste('', project, clf_, scenario,folds, 'detail.csv', sep = '*')
           ))
+        
+        list.files(root_path,pattern = clf)
         # cat(file, '\n')
         df <- read.csv(file.path(root_path, file), check.names = F)
         temp <- glob2rx(project)
@@ -109,7 +123,7 @@ for (scenario in scenarios) {
                indicator)]
         
         
-
+        
         
         # df.checkpoint <-
         #   df %>% group_by(`learning evaluation instances on certain fold`) %>%
@@ -157,7 +171,7 @@ for (scenario in scenarios) {
       total_two_level_sk[row.names(two_level_sk_df), indicator] <- two_level_sk_df[row.names(two_level_sk_df),indicator]
     }
   }
-  sk_root <- 'r_script/learnerComparison/'
+  sk_root <- 'r_script/ldifferentResample/'
   dir.create(sk_root,showWarnings = F)
   write.csv(total_two_level_sk,file.path(sk_root,paste(scenario,folds,fadingfactors,commit,'.csv',sep='_')))
- }
+}

@@ -1,7 +1,8 @@
 # setwd('/media/lxt/TOSHIBA EXT/moa/')
 setwd('D:/work/real-world-evaluation/')
 source('./r_script/generateExperimentBatch.R')
-res_root <- './r_script/result/differentResampling/'
+res_root <- './r_script/result/diffResampling/'
+dir.create(res_root,showWarnings = F,recursive = T)
 learners = c(
   'trees.HoeffdingTree',
   #'"(meta.imbalanced.OnlineSMOTEBagging" -l trees.HoeffdingTree -s 1 -i "2)"',
@@ -23,9 +24,9 @@ files <-
              full.names = T)
 
 seed = '1'
-f_sampleFrequency = '100'
-q_timeFrequency = '100'
-fold = '30'
+f_sampleFrequency = '30'
+q_timeFrequency = '30'
+fold = '10'
 
 script_file <- 'resample.sh'
 
@@ -36,7 +37,7 @@ for (i in 1:length(files)) {
     if(T){
       #PosNeg
       PosWinowLengths <- c(7)
-      NegWinowLengths <- c(90)
+      NegWinowLengths <- c(15)
       evaluation_method <- 'EvaluatePrequentialDelayedCVPosNegWindow'
       for(P_day in PosWinowLengths){
         P <- P_day * seconds_in_a_day
@@ -56,6 +57,7 @@ for (i in 1:length(files)) {
     if(T){
       #Extension
       evaluation_method <- 'EvaluatePrequentialDelayedCVExtension'
+      NegWinowLengths <- c(15)
       for(N_day in NegWinowLengths){
         N <- N_day * seconds_in_a_day
         command <- combineCommandSimplePath(learner,seed,f_sampleFrequency,q_timeFrequency,project,N,N,evaluation_method,res_root,fold=fold)

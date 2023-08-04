@@ -24,7 +24,7 @@ q_timeFrequency = '30'
 
 fold <- '10'
 validation = 'Bootstrap-Validation'
-script_file <- paste('RQ1-ideal.sh',sep='')
+script_file <- paste('RQ3-hitl.sh',sep='')
 for(noise in noises){
   for(seed in seeds){
     
@@ -57,11 +57,29 @@ for(noise in noises){
           }
           
         }
+        if(T){
+
+          NegWindowLengths <- c(1,3,7,15,30,60,90)
+          evaluation_method <- 'EvaluatePrequentialDelayedCVPosNegWindow'
+          # script_file <- 'command-EvaluatePrequentialDelayedCVPosNegWindow.sh'
+          
+            for(N_day in NegWindowLengths){
+              N <- N_day * seconds_in_a_day
+              P <- N #!!!!
+              command <- combineCommandSimplePath(learner,seed,f_sampleFrequency,q_timeFrequency,project,P,N,evaluation_method,res_root,validation,noise,fold)
+              sink(script_file,append = T)
+              cat(command)
+              cat("\n")
+              sink()
+            }
+          }
+          
+        
         if(F){
           #Extension
           evaluation_method <- 'EvaluatePrequentialDelayedCVExtension'
           # script_file <- 'command-EvaluatePrequentialDelayedCVExtension.sh'
-          NegWindowLengths <- c(7,15,30,60,90)
+          NegWindowLengths <- c(1,3,7,15,30,60,90)
           for(N_day in NegWindowLengths){
             N <- N_day * seconds_in_a_day
             command <- combineCommandSimplePath(learner,seed,f_sampleFrequency,q_timeFrequency,project,N,N,evaluation_method,res_root,validation,noise,fold)
@@ -71,7 +89,7 @@ for(noise in noises){
             sink()
           }
         }
-        if(T){
+        if(F){
           #Ideal
           evaluation_method <- 'EvaluatePrequentialDelayedCVIdeal'
           # script_file <- 'command-EvaluatePrequentialDelayedCVIdeal.sh'

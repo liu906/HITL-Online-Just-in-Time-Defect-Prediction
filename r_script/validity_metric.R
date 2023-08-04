@@ -83,15 +83,32 @@ for(project in projects){
   }
 }
 
-# sel <- c("PosNegWindow_3_90.csv", "PosNegWindow_15_90.csv", "PosNegWindow_30_90.csv", "PosNegWindow_7_90.csv", "Extension_90_90.csv","Ideal.csv")
-sel <- c("PosNegWindow_3_90.csv", "PosNegWindow_7_90.csv", "PosNegWindow_15_90.csv", "PosNegWindow_30_90.csv","PosNegWindow_60_90.csv", "Ideal.csv")
-sel <- c("PosNegWindow_3_90.csv", "PosNegWindow_7_90.csv", "PosNegWindow_30_90.csv","PosNegWindow_60_90.csv", "PosNegWindow_15_3.csv", "PosNegWindow_15_7.csv", "PosNegWindow_15_15.csv", "PosNegWindow_15_30.csv","PosNegWindow_15_60.csv", "PosNegWindow_15_90.csv","Ideal.csv")
-total_result <- total_result[total_result$estimate_scenario %in% sel,]
+
 
 # project=projects,Ideal='Ideal',indicator = unique(total_result$indicator)
 
 write.csv(total_result,"D:/work/real-world-evaluation/r_script/RQ3/validity_metric_new.csv",row.names = F)
+###################################################################################################################
+if(T){
+   
+  total_result <- rbind(total_result[grepl('PosNegWindow_90', total_result$estimate_scenario), ],
+                        total_result[grepl('Ideal', total_result$estimate_scenario), ])
 
+  # sel <- c("PosNegWindow_3_90.csv", "PosNegWindow_15_90.csv", "PosNegWindow_30_90.csv", "PosNegWindow_7_90.csv", "Extension_90_90.csv","Ideal.csv")
+  # sel <- c("PosNegWindow_3_90.csv", "PosNegWindow_7_90.csv", "PosNegWindow_15_90.csv", 
+  #          "PosNegWindow_30_90.csv","PosNegWindow_60_90.csv","PosNegWindow_90_90.csv", "Ideal.csv")
+  
+  # sel <- c("PosNegWindow_3_90.csv", "PosNegWindow_7_90.csv", "PosNegWindow_30_90.csv",
+  #          "PosNegWindow_60_90.csv","PosNegWindow_90_90.csv", "PosNegWindow_15_3.csv","PosNegWindow_15_7.csv", 
+  #          "PosNegWindow_15_15.csv", "PosNegWindow_15_30.csv","PosNegWindow_15_60.csv", 
+  #          "PosNegWindow_15_90.csv","Ideal.csv")
+  # total_result <- total_result[total_result$estima'BFC',te_scenario %in% sel,]
+  res_path <- "D:/work/real-world-evaluation/r_script/RQ3/BFC_validity_metric_skESD_new.csv"
+}else{
+  total_result <- rbind(total_result[grepl('90.csv', total_result$estimate_scenario), ],
+                        total_result[grepl('Ideal', total_result$estimate_scenario), ])
+  res_path <- "D:/work/real-world-evaluation/r_script/RQ3/SQA_validity_metric_skESD_new.csv"
+}
 library(dplyr)
 library(ScottKnottESD)
 first_per <- T
@@ -143,4 +160,75 @@ for(percentage in percentages){
 
 
 
-write.csv(res[res$perc %in% c(0.1,0.5,1),],"D:/work/real-world-evaluation/r_script/RQ3/validity_metric_skESD_new.csv",row.names = T)
+write.csv(res[res$perc %in% percentages,],res_path,row.names = T)
+###################################################################################################################################
+
+
+df <- read.csv("D:/work/real-world-evaluation/r_script/RQ3/validity_metric_new.csv",check.names = F)
+
+col_name <- '1000'
+indicator = '[avg] Gmean for recall  (percent)'
+res_root <- "D:/work/real-world-evaluation/r_script/RQ3/split_validity/"
+dir.create(res_root,recursive = T,showWarnings = F) 
+
+df <- cbind(df[,1:5],df[,col_name])
+df <- df[df$estimate_scenario!='Ideal.csv',]
+df <- df[df$indicator==indicator,]
+projects <- unique(df$project)
+for (project in projects) {
+  sub_df <- df[df$project==project,]
+  for (idx in 1:nrow(sub_df)) {
+    SQA_waitingtime <- strsplit(sub_df$estimate_scenario,'_')[[idx]][2]
+    BFC_waitingtime <- strsplit(sub_df$estimate_scenario,'_')[[idx]][3]
+    BFC_waitingtime <- substr(BFC_waitingtime,1,nchar(BFC_waitingtime)-4)
+    sub_df[idx,'SQA wt (day)'] <- as.numeric(SQA_waitingtime)
+    sub_df[idx,'BFC wt (day)'] <- as.numeric(BFC_waitingtime)
+  }
+  sub_df_sorted <- sub_df[order(as.numeric(sub_df$`SQA wt (day)`)), ]
+  sub_df_sorted <- sub_df_sorted[as.numeric(sub_df_sorted$`BFC wt (day)`)==15,]
+  sub_df_sorted <- cbind(`SQA wt (day)`=sub_df_sorted$`SQA wt (day)`,sub_df_sorted)
+  colnames(sub_df_sorted)[colnames(sub_df_sorted)=='df[, col_name]']='validity'
+  sub_df_sorted <- rbind(rep(sub_df_sorted$project[1],ncol(sub_df_sorted)),sub_df_sorted )
+  
+  write.csv(sub_df_sorted,
+            file=file.path(res_root,paste('SQA(BFC15)',col_name,project,indicator,'.csv',sep = '_')),
+            row.names = F,
+            quote = F)
+}
+
+
+
+for (project in projects) {
+  sub_df <- df[df$project==project,]
+  for (idx in 1:nrow(sub_df)) {
+    SQA_waitingtime <- strsplit(sub_df$estimate_scenario,'_')[[idx]][2]
+    BFC_waitingtime <- strsplit(sub_df$estimate_scenario,'_')[[idx]][3]
+    BFC_waitingtime <- substr(BFC_waitingtime,1,nchar(BFC_waitingtime)-4)
+    sub_df[idx,'SQA wt (day)'] <- as.numeric(SQA_waitingtime)
+    sub_df[idx,'BFC wt (day)'] <- as.numeric(BFC_waitingtime)
+  }
+  sub_df_sorted <- sub_df[order(as.numeric(sub_df$`BFC wt (day)`)), ]
+  sub_df_sorted <- sub_df_sorted[as.numeric(sub_df_sorted$`SQA wt (day)`)==15,]
+  sub_df_sorted <- cbind(`BFC wt (day)`=sub_df_sorted$`BFC wt (day)`,sub_df_sorted)
+  colnames(sub_df_sorted)[colnames(sub_df_sorted)=='df[, col_name]']='validity'
+  
+  
+  sub_df_sorted <- rbind(rep(sub_df_sorted$project[1],ncol(sub_df_sorted)),sub_df_sorted )
+  
+  write.csv(sub_df_sorted,
+            file=file.path(res_root,paste('BFC(SQA=15)',col_name,project,indicator,'.csv',sep = '_')),
+            row.names = F,
+            quote = F)
+}
+
+
+
+
+
+
+
+
+
+
+
+
