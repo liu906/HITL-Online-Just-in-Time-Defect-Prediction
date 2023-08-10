@@ -42,8 +42,6 @@ for (scenario in scenarios) {
       temp <- substring(temp, 2, nchar(temp)-1)
       file <- list.files(res_root,pattern=paste(temp,'.*_',clf,'_.*',scenario,'.*','dumpFile.csv$',sep = ''))
       df <- read.csv(file = file.path(res_root,file),check.names = F)
-      read.csv(file = file.path(res_root,'0_brackets_trees.AdaHoeffdingOptionTree_EvaluatePrequentialDelayedCVPosNegWindow_7_15_seed1_Bootstrap-Validation_10Fold_FF0.99_dumpFile.csv'))
-      
       
       key_timestamp_file <- list.files(dataset_path,pattern = temp)
       key_timestamp_df <- read.csv(file.path(dataset_path,key_timestamp_file))

@@ -1,5 +1,5 @@
 library(dplyr)
-res_root <- "D:/work/real-world-evaluation/r_script/result/diffLearner-100/"    
+res_root <- "D:/work/real-world-evaluation/r_script/result/diffLearner/"    
 files <- list.files(res_root,pattern = 'csv$')
 
 projects <- c()

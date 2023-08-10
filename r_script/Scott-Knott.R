@@ -74,9 +74,9 @@ for (scenario in scenarios) {
       #project <- projects[2]
       first_flag <- T
       for (clf in clfs) {
-        if(clf=='functions.MajorityClass' || clf=='functions.NoChange'){
-          next
-        }
+        # if(clf=='functions.MajorityClass' || clf=='functions.NoChange'){
+        #   next
+        # }
         clf_ <- paste('_', clf, '_', sep = '')
         file <-
           list.files(root_path, pattern = glob2rx(
