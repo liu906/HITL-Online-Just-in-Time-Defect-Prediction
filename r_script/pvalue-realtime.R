@@ -2,8 +2,8 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source('mcnemar.R')
 setwd('D:/work/real-world-evaluation/r_script/result/HITLvsNoHITL-detail')
 library(ggplot2)
-
-performance_realtime <- function(file1,file2,res_name,project){
+library(patchwork)
+performance_realtime <- function(file1,file2,project){
   
   indicator <- '[avg] Gmean for recall  (percent)'
   
@@ -24,60 +24,48 @@ performance_realtime <- function(file1,file2,res_name,project){
     }
     stop <- stop - 1
     sub1 <- df1[df1$`current timestamp`==ts,indicator]
-    sub2 <- df2[df1$`current timestamp`==ts,indicator]
-    pvalue <- wilcox.test(sub1,sub2,paired=F)$p.value
-    if(!is.na(pvalue)&&pvalue<0.05){
-      if(mean(sub1)>mean(sub2)){
-        answer = 'non-HITL is better'
-      }else{
-        answer = 'HITL is better'
-      }
-    }else{
-      answer = 'no significant difference'
-    }
-    
+    sub2 <- df2[df2$`current timestamp`==ts,indicator]
+   
     if(first_flag){
       first_flag <- F
-      res <- data.frame(ts=ts,pvalue=pvalue,answer=answer)
+      res <- data.frame(ts=ts,`non-HITL`=sub1,`HITL`=sub2)
     }else{
-      res <- rbind(res,data.frame(ts=ts,pvalue=pvalue,answer=answer))
+      res <- rbind(res,data.frame(ts=ts,`non-HITL`=sub1,`HITL`=sub2))
     }
   }
-  # install.packages("extrafont")
   
+  res[40:50,]
   # 创建你的数据框
   data <- res
   
   # 为每个answer值分配颜色
-  color_mapping <- c("non-HITL is better" = "#F35E5A", 
-                     "HITL is better" = "#0000DD",
-                     "no significant difference" = "#B0B0B0")
+  color_mapping <- c("non-HITL" = "#F35E5A", 
+                     "HITL" = "#0000DD")
   
   # 创建一个计数列用于堆叠
   data$counter <- 1:nrow(data)
   
-  # 使用ggplot绘制堆叠条形图（条形码）
-  my_plot <- ggplot(data, aes(x = counter, fill = answer,y=0.1)) +
-    geom_bar(position = "stack", stat = "identity") +
+  # 使用ggplot绘制折线图
+  ling_plot <- ggplot(data, aes(x = counter)) +
+    geom_line(aes(y = non.HITL, color = "non.HITL"), size = 1) +
+    geom_line(aes(y = HITL, color = "HITL"), size = 1) +
     labs(title = project,
          x = "#commit",
-         y = "") +
-    scale_fill_manual(values = color_mapping) +
+         y = "G-mean") +
+    scale_color_manual(values = c("non.HITL" = "#F35E5A", "HITL" = "#0000DD")) +
     theme_minimal() +
-    theme(axis.title.y = element_blank(), 
-          axis.text.y = element_blank(),
-          axis.ticks.y = element_blank(),
-          panel.background = element_blank(),
-          panel.grid = element_blank(),
-          text = element_text(family = "Times New Roman",size = 16),
-          plot.title = element_text(size = 12)
-    )+
-    labs(fill = "wilcoxon")
-  my_plot
-  ggsave(res_name, my_plot, width = 10, height = 1.5, units = "in")
+    theme(
+      legend.title = element_blank(),
+      legend.position = "top",
+      text = element_text(family = "Times New Roman",size = 16),
+      plot.title = element_text(size = 12)
+      
+    )
+  return(ling_plot)
+  # ggsave(res_name, my_plot, width = 10, height = 3, units = "in")
 }
 
-pvalue_realtime <- function(file1,file2,res_name,project){
+pvalue_realtime <- function(file1,file2,project){
   indicators <- c('Recall for class 1 (percent)',
                   'Gmean for recall  (percent)',
                   'FPR for class 1 (percent)')
@@ -100,7 +88,7 @@ pvalue_realtime <- function(file1,file2,res_name,project){
     }
     stop <- stop - 1
     sub1 <- df1[df1$`current timestamp`==ts,indicator]
-    sub2 <- df2[df1$`current timestamp`==ts,indicator]
+    sub2 <- df2[df2$`current timestamp`==ts,indicator]
     pvalue <- wilcox.test(sub1,sub2,paired=F)$p.value
     if(!is.na(pvalue)&&pvalue<0.05){
       if(mean(sub1)>mean(sub2)){
@@ -133,9 +121,9 @@ pvalue_realtime <- function(file1,file2,res_name,project){
   data$counter <- 1:nrow(data)
   
   # 使用ggplot绘制堆叠条形图（条形码）
-  my_plot <- ggplot(data, aes(x = counter, fill = answer,y=0.1)) +
+  bar_plot <- ggplot(data, aes(x = counter, fill = answer,y=0.08)) +
     geom_bar(position = "stack", stat = "identity") +
-    labs(title = project,
+    labs(title = "wilcoxon",
          x = "#commit",
          y = "") +
     scale_fill_manual(values = color_mapping) +
@@ -146,11 +134,14 @@ pvalue_realtime <- function(file1,file2,res_name,project){
           panel.background = element_blank(),
           panel.grid = element_blank(),
           text = element_text(family = "Times New Roman",size = 16),
-          plot.title = element_text(size = 12)
+          plot.title = element_text(size = 12),
+          legend.position = "bottom",
+          legend.direction = "horizontal"
     )+
-    labs(fill = "wilcoxon")
-  my_plot
-  ggsave(res_name, my_plot, width = 10, height = 1.5, units = "in")
+    labs(fill = "")
+  # my_plot
+  # ggsave(res_name, my_plot, width = 10, height = 1.5, units = "in")
+  return(bar_plot)
 }
 
 
@@ -159,11 +150,35 @@ pvalue_realtime <- function(file1,file2,res_name,project){
 
 
 dir.create('img',showWarnings = F)
+project <- 'brackets'
+file1 <- paste('0_',project,'_trees.HoeffdingTree_EvaluatePrequentialDelayedCVExtension_15_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv',sep='')
+file2 <- paste('0_',project,'_trees.HoeffdingTree_EvaluatePrequentialDelayedCVPosNegWindow_7_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv',sep='')
+bar_plot <- pvalue_realtime(file1,file2,project)
+file1 <- paste('0_',project,'_brackets_trees.HoeffdingTree_EvaluatePrequentialDelayedCVExtension_15_15_seed1_Bootstrap-Validation_10Fold_FF0.99_dumpFile.csv',sep='')
+file2 <- paste('0_',project,'_brackets_trees.HoeffdingTree_EvaluatePrequentialDelayedCVPosNegWindow_7_15_seed1_Bootstrap-Validation_10Fold_FF0.99_dumpFile.csv',sep='')
+line_plot <- performance_realtime(file1,file2,project)
+# 组合图形
+combined_plot <- line_plot + bar_plot + plot_layout(nrow = 2)
+combined_plot <- line_plot + bar_plot + plot_layout(heights = c(3, 1))
+res_name <- paste('img/combine_',project,'_realtime.svg',sep = '')
+ggsave(res_name, combined_plot, width = 6.4, height =4, units = "in")
 
-file1 <- '0_brackets_trees.HoeffdingTree_EvaluatePrequentialDelayedCVExtension_15_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv'
-file2 <- '0_brackets_trees.HoeffdingTree_EvaluatePrequentialDelayedCVPosNegWindow_7_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv'
-res_name <- 'img/brackets_pvalue_realtime.svg'
-pvalue_realtime(file1,file2,res_name,'brackets')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 file1 <- '0_git(master)_trees.HoeffdingTree_EvaluatePrequentialDelayedCVExtension_15_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv'
 file2 <- '0_git(master)_trees.HoeffdingTree_EvaluatePrequentialDelayedCVPosNegWindow_7_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv'
@@ -174,3 +189,28 @@ file1 <- '0_vlc(master)_trees.HoeffdingTree_EvaluatePrequentialDelayedCVExtensio
 file2 <- '0_vlc(master)_trees.HoeffdingTree_EvaluatePrequentialDelayedCVPosNegWindow_7_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv'
 res_name <- 'img/vlc(master)_pvalue_realtime.svg'
 pvalue_realtime(file1,file2,res_name,'vlc(master)')
+
+
+
+file1 <- '0_brackets_trees.HoeffdingTree_EvaluatePrequentialDelayedCVExtension_15_15_seed1_Bootstrap-Validation_10Fold_FF0.99_dumpFile.csv'
+file2 <- '0_brackets_trees.HoeffdingTree_EvaluatePrequentialDelayedCVPosNegWindow_7_15_seed1_Bootstrap-Validation_10Fold_FF0.99_dumpFile.csv'
+res_name <- 'img/brackets_performance_realtime.svg'
+performance_realtime(file1,file2,res_name,project='brackets')
+
+file1 <- '0_git(master)_trees.HoeffdingTree_EvaluatePrequentialDelayedCVExtension_15_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv'
+file2 <- '0_git(master)_trees.HoeffdingTree_EvaluatePrequentialDelayedCVPosNegWindow_7_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv'
+res_name <- 'img/git(master)_pvalue_realtime.svg'
+pvalue_realtime(file1,file2,res_name,project='git(master)')
+
+file1 <- '0_vlc(master)_trees.HoeffdingTree_EvaluatePrequentialDelayedCVExtension_15_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv'
+file2 <- '0_vlc(master)_trees.HoeffdingTree_EvaluatePrequentialDelayedCVPosNegWindow_7_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv'
+res_name <- 'img/vlc(master)_pvalue_realtime.svg'
+pvalue_realtime(file1,file2,res_name,project = 'vlc(master)')
+
+
+
+
+
+
+
+
