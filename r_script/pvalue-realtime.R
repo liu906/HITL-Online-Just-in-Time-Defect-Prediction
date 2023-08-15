@@ -150,67 +150,21 @@ pvalue_realtime <- function(file1,file2,project){
 
 
 dir.create('img',showWarnings = F)
-project <- 'brackets'
-file1 <- paste('0_',project,'_trees.HoeffdingTree_EvaluatePrequentialDelayedCVExtension_15_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv',sep='')
-file2 <- paste('0_',project,'_trees.HoeffdingTree_EvaluatePrequentialDelayedCVPosNegWindow_7_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv',sep='')
-bar_plot <- pvalue_realtime(file1,file2,project)
-file1 <- paste('0_',project,'_brackets_trees.HoeffdingTree_EvaluatePrequentialDelayedCVExtension_15_15_seed1_Bootstrap-Validation_10Fold_FF0.99_dumpFile.csv',sep='')
-file2 <- paste('0_',project,'_brackets_trees.HoeffdingTree_EvaluatePrequentialDelayedCVPosNegWindow_7_15_seed1_Bootstrap-Validation_10Fold_FF0.99_dumpFile.csv',sep='')
-line_plot <- performance_realtime(file1,file2,project)
-# 组合图形
-combined_plot <- line_plot + bar_plot + plot_layout(nrow = 2)
-combined_plot <- line_plot + bar_plot + plot_layout(heights = c(3, 1))
-res_name <- paste('img/combine_',project,'_realtime.svg',sep = '')
-ggsave(res_name, combined_plot, width = 6.4, height =4, units = "in")
+projects <- c('brackets','git(master)','vlc(master)')
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-file1 <- '0_git(master)_trees.HoeffdingTree_EvaluatePrequentialDelayedCVExtension_15_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv'
-file2 <- '0_git(master)_trees.HoeffdingTree_EvaluatePrequentialDelayedCVPosNegWindow_7_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv'
-res_name <- 'img/git(master)_pvalue_realtime.svg'
-pvalue_realtime(file1,file2,res_name,'git(master)')
-
-file1 <- '0_vlc(master)_trees.HoeffdingTree_EvaluatePrequentialDelayedCVExtension_15_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv'
-file2 <- '0_vlc(master)_trees.HoeffdingTree_EvaluatePrequentialDelayedCVPosNegWindow_7_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv'
-res_name <- 'img/vlc(master)_pvalue_realtime.svg'
-pvalue_realtime(file1,file2,res_name,'vlc(master)')
-
-
-
-file1 <- '0_brackets_trees.HoeffdingTree_EvaluatePrequentialDelayedCVExtension_15_15_seed1_Bootstrap-Validation_10Fold_FF0.99_dumpFile.csv'
-file2 <- '0_brackets_trees.HoeffdingTree_EvaluatePrequentialDelayedCVPosNegWindow_7_15_seed1_Bootstrap-Validation_10Fold_FF0.99_dumpFile.csv'
-res_name <- 'img/brackets_performance_realtime.svg'
-performance_realtime(file1,file2,res_name,project='brackets')
-
-file1 <- '0_git(master)_trees.HoeffdingTree_EvaluatePrequentialDelayedCVExtension_15_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv'
-file2 <- '0_git(master)_trees.HoeffdingTree_EvaluatePrequentialDelayedCVPosNegWindow_7_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv'
-res_name <- 'img/git(master)_pvalue_realtime.svg'
-pvalue_realtime(file1,file2,res_name,project='git(master)')
-
-file1 <- '0_vlc(master)_trees.HoeffdingTree_EvaluatePrequentialDelayedCVExtension_15_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv'
-file2 <- '0_vlc(master)_trees.HoeffdingTree_EvaluatePrequentialDelayedCVPosNegWindow_7_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv'
-res_name <- 'img/vlc(master)_pvalue_realtime.svg'
-pvalue_realtime(file1,file2,res_name,project = 'vlc(master)')
-
-
-
-
-
-
-
+for (project in projects) {
+  file1 <- paste('0_',project,'_trees.HoeffdingTree_EvaluatePrequentialDelayedCVExtension_15_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv',sep='')
+  file2 <- paste('0_',project,'_trees.HoeffdingTree_EvaluatePrequentialDelayedCVPosNegWindow_7_15_seed1_Bootstrap-Validation_10Fold_FF0.99_detail.csv',sep='')
+  bar_plot <- pvalue_realtime(file1,file2,project)
+  file1 <- paste('0_',project,'_trees.HoeffdingTree_EvaluatePrequentialDelayedCVExtension_15_15_seed1_Bootstrap-Validation_10Fold_FF0.99_dumpFile.csv',sep='')
+  file2 <- paste('0_',project,'_trees.HoeffdingTree_EvaluatePrequentialDelayedCVPosNegWindow_7_15_seed1_Bootstrap-Validation_10Fold_FF0.99_dumpFile.csv',sep='')
+  line_plot <- performance_realtime(file1,file2,project)
+  # 组合图形
+  combined_plot <- line_plot + bar_plot + plot_layout(nrow = 2)
+  combined_plot <- line_plot + bar_plot + plot_layout(heights = c(3, 1))
+  res_name <- paste('img/combine_',project,'_realtime.svg',sep = '')
+  ggsave(res_name, combined_plot, width = 6.4, height =4, units = "in")
+  
+  
+}
 
